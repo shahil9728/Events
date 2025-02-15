@@ -1,0 +1,2 @@
+export const SET_EMPLOYEE_ID = 'SET_EMPLOYEE_ID';
+export const SET_MANAGER_ID = 'SET_MANAGER_ID';

@@ -1,0 +1,321 @@
+import { ManagerEventScreenProps } from '@/app/RootLayoutHelpers';
+import { useTheme } from '@/app/ThemeContext';
+import { useSnackbar } from '@/components/SnackBar';
+import { supabase } from '@/lib/supabase';
+import { Icon } from '@rneui/themed';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { useSelector } from 'react-redux';
+import { getFriendlydate } from '../utils';
+import { Ionicons } from '@expo/vector-icons';
+import Collapsible from 'react-native-collapsible';
+import { FlatList } from 'react-native';
+
+
+const ManagerEventScreen = ({ navigation, route }: ManagerEventScreenProps) => {
+    const {
+        title = 'Samay Raina Unfiltered',
+        startDate = 'Thu 16 Jan 2025 - Sun 27 Apr 2025',
+        endDate = 'Sun 27 Apr 2025',
+        eventCategory = 'Comedy',
+        location = 'Shilpakala Vedika: Hyderabad',
+        eventDescription = 'Last leg of the Unfiltered India tour!',
+        eventImage = 'https://via.placeholder.com/300x150',
+        eventSalary = '₹1500 onwards',
+        id = '1',
+    } = route.params || {};
+
+    const [data, setData] = useState<any>([]);
+    const [reqloading, setReqLoading] = useState(false);
+    const [activeSection, setActiveSection] = useState<number | null>(null);
+
+    const toggleSection = (section: number) => {
+        setActiveSection(activeSection === section ? null : section);
+    };
+
+    const accountInfo = useSelector((store: { accountInfo: any }) => store.accountInfo);
+    const { showSnackbar } = useSnackbar();
+    const { theme } = useTheme();
+    const styles = createStyles(theme);
+
+    const fetchEmployeeData = async () => {
+        const { data, error } = await supabase
+            .from('employee_to_manager')
+            .select(`*,employee_details:employee_id(id,name,email)`)
+            .eq('event_id', id);
+        if (error) {
+            console.log(error);
+        } else {
+            if (data) {
+                setData(data);
+            }
+        }
+    }
+    useEffect(() => {
+        fetchEmployeeData();
+    }, [])
+
+    const updateRequestStatus = async (employee_id: string, event_id: string, status: string) => {
+        setReqLoading(true);
+        try {
+            const { error } = await supabase.from("employee_to_manager").update({ req_status: status }).eq("employee_id", employee_id).eq("event_id", event_id);
+            if (error) {
+                console.error(error);
+            }
+        } catch (error) {
+            console.error('Error updating request status:', error);
+        } finally {
+            setReqLoading(false);
+            fetchEmployeeData();
+            showSnackbar(`Request ${status} successfully!`, "success");
+        }
+    };
+
+
+    const acceptedFreelancers = data?.filter((item: { req_status: string }) => item.req_status === "accepted");
+    const pendingRequests = data?.filter((item: { req_status: string; request_initiator: string; id: string }) => item.req_status === "pending" && item.request_initiator === "EMPLOYEE");
+    const managerRequests = data?.filter((item: { request_initiator: string; id: string; req_status: string; }) => item.request_initiator === "MANAGER" && item.req_status === "pending");
+
+    const renderEmployee = ({ item }: { item: { employee_details: { name: string; id: string; } } }) => (
+        <View style={styles.employeeCard}>
+            <Text style={styles.employeeName}>{item.employee_details.name}</Text>
+        </View>
+    );
+
+    const renderPendingEmployee = ({ item }: { item: { employee_details: { name: string, id: string }, manager_id: string; employee_id: string; event_id: string } }) => (
+        <View style={styles.employeeCard}>
+            <Text style={styles.employeeName}>{item.employee_details.name}</Text>
+            <View style={styles.actions}>
+                {reqloading ? <ActivityIndicator size="small" color={theme.primaryColor} /> : (
+                    <>
+                        <TouchableOpacity onPress={() => updateRequestStatus(item.employee_id, item.event_id, 'accepted')}>
+                            <Ionicons name="checkmark" size={24} color="green" />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => updateRequestStatus(item.employee_id, item.event_id, 'rejected')}>
+                            <Ionicons name="close" size={24} color="red" />
+                        </TouchableOpacity>
+                    </>
+                )}
+            </View>
+        </View>
+    );
+
+
+    return (
+        <ScrollView style={styles.container}>
+            {/* Event Image */}
+            <View style={styles.imageContainer}>
+                <Image
+                    source={{ uri: eventImage }}
+                    style={styles.eventImage}
+                />
+                <TouchableOpacity style={styles.favoriteIcon}>
+                    <Icon name="heart" type='font-awesome' size={20} color="#fff" />
+                </TouchableOpacity>
+            </View>
+
+            <View style={styles.titleContainer}>
+                <Text style={styles.eventTitle}>{title}</Text>
+            </View>
+
+            <View style={styles.detailsRow}>
+                <View style={styles.iconWithTextcont}>
+                    <TouchableOpacity style={[styles.iconWithText]}>
+                        <Icon name="calendar" type='font-awesome' size={15} color={"#F1F0E6"} />
+                        <Text style={[styles.detailItem, { color: "#F1F0E6" }]}> {getFriendlydate(startDate)} - {getFriendlydate(endDate)}</Text>
+                    </TouchableOpacity>
+                </View>
+                <View style={styles.iconWithTextcont}>
+                    <TouchableOpacity style={styles.iconWithText}>
+                        <Icon name="school-outline" type='ionicon' size={15} color={"#F1F0E6"} />
+                        <Text style={[styles.detailItem, { color: "#F1F0E6" }]}>{eventCategory}</Text>
+                    </TouchableOpacity>
+                </View>
+                <View style={styles.iconWithTextcont}>
+                    <TouchableOpacity style={styles.iconWithText}>
+                        <Icon name="map-pin" type='feather' size={15} color={"#F1F0E6"} />
+                        <Text style={[styles.detailItem, { color: "#F1F0E6" }]}>{location}</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+
+            {/* About the Event */}
+            <View style={styles.aboutSection}>
+                <View style={styles.aboutTitle}>
+                    <Text style={styles.sectionTitle}>About The Event</Text>
+                    <Text style={[styles.sectionTitle, { color: theme.headingColor, fontSize: 18 }]}>{eventSalary.split("/")[0]}<Text style={{ fontSize: 12, color: theme.lightGray2 }}>/ {eventSalary.split("/")[1]}</Text></Text>
+                </View>
+                <Text style={styles.descriptionText}>{eventDescription}</Text>
+            </View>
+
+            <View style={styles.bookingSection}>
+                {/* Accepted Freelancers */}
+                <TouchableOpacity onPress={() => toggleSection(1)} style={styles.header}>
+                    <Text style={styles.headerText}>Freelancers ready to work</Text>
+                    <View style={{ transform: [{ rotate: activeSection === 1 ? '90deg' : '0deg' }] }}>
+                        <Icon name="chevron-forward" type="ionicon" size={20} color="#fff" />
+                    </View>
+                </TouchableOpacity>
+                <Collapsible collapsed={activeSection !== 1}>
+                    {acceptedFreelancers.length === 0 && <Text style={{ color: theme.lightGray2, textAlign: 'center' }}>No freelancers accepted yet!</Text>}
+                    <FlatList
+                        data={acceptedFreelancers}
+                        keyExtractor={(item) => item.employee_details.id.toString()}
+                        renderItem={renderEmployee}
+                    />
+                </Collapsible>
+
+                {/* Pending Requests */}
+                <TouchableOpacity onPress={() => toggleSection(2)} style={styles.header}>
+                    <Text style={styles.headerText}>Freelancer Requests on this Event</Text>
+                    <View style={{ transform: [{ rotate: activeSection === 2 ? '90deg' : '0deg' }] }}>
+                        <Icon name="chevron-forward" type="ionicon" size={20} color="#fff" />
+                    </View>
+                </TouchableOpacity>
+                <Collapsible collapsed={activeSection !== 2}>
+                    {pendingRequests.length === 0 && <Text style={{ color: theme.lightGray2, textAlign: 'center' }}>No pending requests found!</Text>}
+                    <FlatList
+                        data={pendingRequests}
+                        keyExtractor={(item) => item.employee_details.id.toString()}
+                        renderItem={renderPendingEmployee}
+                    />
+                </Collapsible>
+
+                {/* Manager Requests */}
+                <TouchableOpacity onPress={() => toggleSection(3)} style={styles.header}>
+                    <Text style={styles.headerText}>Pending Requests by you</Text>
+                    <View style={{ transform: [{ rotate: activeSection === 3 ? '90deg' : '0deg' }] }}>
+                        <Icon name="chevron-forward" type="ionicon" size={20} color="#fff" />
+                    </View>
+                </TouchableOpacity>
+                <Collapsible collapsed={activeSection !== 3}>
+                    {managerRequests.length === 0 && <Text style={{ color: theme.lightGray2, textAlign: 'center' }}>No pending requests found!</Text>}
+                    <FlatList
+                        data={managerRequests}
+                        keyExtractor={(item) => item.employee_details.id.toString()}
+                        renderItem={renderEmployee}
+                    />
+                </Collapsible>
+            </View>
+        </ScrollView >
+    );
+};
+
+const createStyles = (theme: any) => StyleSheet.create({
+    container: {
+        flex: 1,
+        padding: 16,
+    },
+    imageContainer: {
+        position: 'relative',
+    },
+    favoriteIcon: {
+        position: 'absolute',
+        top: 16,
+        right: 16,
+        backgroundColor: '#565555',
+        padding: 8,
+        borderRadius: 50,
+    },
+    eventImage: {
+        width: '100%',
+        height: 200,
+        borderRadius: 8,
+        marginBottom: 16,
+    },
+    titleContainer: {
+        marginBottom: 8,
+    },
+    eventTitle: {
+        color: theme.headingColor,
+        fontSize: 24,
+        fontWeight: 'bold',
+    },
+    aboutSection: {
+        marginBottom: 16,
+        marginTop: 16,
+    },
+    aboutTitle: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        borderWidth: 1,
+    },
+    sectionTitle: {
+        color: theme.primaryColor,
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 8,
+    },
+    descriptionText: {
+        color: theme.secondaryColor,
+    },
+    bookingSection: {
+        marginTop: 10,
+        flexDirection: 'column',
+        justifyContent: 'center',
+    },
+    detailsRow: {
+        flexDirection: 'row',
+        marginVertical: 15,
+        gap: 8,
+        flexWrap: 'wrap',
+    },
+    detailItem: {
+        marginLeft: 4,
+        fontSize: 14,
+        color: '#202023',
+    },
+    iconWithText: {
+        flexDirection: 'row',
+        justifyContent: "space-between",
+        alignItems: 'center',
+        gap: 3,
+    },
+    iconWithTextcont: {
+        padding: 5,
+        paddingHorizontal: 10,
+        backgroundColor: theme.lightGray,
+        borderRadius: 30,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    header: {
+        display: "flex",
+        flexDirection: 'row',
+        justifyContent: "space-between",
+        backgroundColor: theme.lightGray,
+        padding: 15,
+        borderRadius: 8,
+        marginBottom: 10,
+    },
+    headerText: {
+        color: theme.headingColor,
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    employeeCard: {
+        backgroundColor: theme.lightGray,
+        padding: 15,
+        borderRadius: 8,
+        marginBottom: 10,
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: "space-between"
+    },
+    employeeName: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: theme.headingColor,
+    },
+    actions: {
+        width: "30%",
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+
+});
+
+export default ManagerEventScreen;
+
