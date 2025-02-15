@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "806005100342",
+    "project_id": "eventa-e1a8c",
+    "storage_bucket": "eventa-e1a8c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:806005100342:android:ee6b16e78358a995346d97",
+        "android_client_info": {
+          "package_name": "com.shahil9728.Events"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC9oJfLclxdV5reE_cclUA0br_xs4ymvZQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
