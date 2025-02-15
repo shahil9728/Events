@@ -18,6 +18,7 @@
     "@expo/vector-icons": "^14.0.2",
     "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-community/datetimepicker": "8.2.0",
+    "@react-native-firebase/app": "^21.10.0",
     "@react-native-firebase/auth": "^21.10.0",
     "@react-native-firebase/database": "^21.10.0",
     "@react-native-picker/picker": "2.9.0",
@@ -75,5 +76,16 @@
     "react-test-renderer": "18.3.1",
     "typescript": "^5.3.3"
   },
-  "private": true
+  "private": true,
+  "expo": {
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "react-native-element-dropdown",
+          "react-native-loader-kit"
+        ],
+        "listUnknownPackages": false
+      }
+    }
+  }
 }
