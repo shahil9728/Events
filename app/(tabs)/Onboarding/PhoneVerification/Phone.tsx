@@ -3,9 +3,8 @@ import React, { useState } from 'react'
 import { View } from 'react-native'
 import Phone1 from './Phone1';
 import Phone2 from './Phone2';
+import { supabase } from '@/lib/supabase';
 import { useSnackbar } from '@/components/SnackBar';
-import * as SMS from 'expo-sms';
-
 
 const Phone = () => {
     const [currentScreen, setCurrentScreen] = useState(1);
@@ -13,19 +12,21 @@ const Phone = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [otp, setOtp] = useState<string[]>(['', '', '', '', '']);
     const { showSnackbar } = useSnackbar();
-    const code = 42433;
 
     const sendOtp = async (contactNumber: string) => {
         setIsLoading(true);
         try {
-            const isAvailable = await SMS.isAvailableAsync();
-            if (!isAvailable) {
-                showSnackbar("SMS is not available on this device.", 'error');
-                return;
-            }
+            const { error } = await supabase.auth.signInWithOtp({
+                phone: contactNumber,
+            });
 
-            const isSent = await SMS.sendSMSAsync([contactNumber], `Your OTP is: ${code}`);
-            console.log(isSent);
+            if (error) {
+                console.log(error);
+                showSnackbar("Error sending OTP. Please try again.", 'error');
+            } else {
+                showSnackbar("OTP sent successfully.", 'success');
+                setCurrentScreen(2);
+            }
         } catch (err) {
             showSnackbar("Error sending OTP. Please try again.", 'error');
         } finally {
@@ -38,11 +39,15 @@ const Phone = () => {
         const otpCode = otp.join('');
 
         try {
-            if (otpCode !== code.toString()) {
-                showSnackbar("Invalid OTP. Please try again.", 'error');
-                return;
-            }
-            else {
+            const { error } = await supabase.auth.verifyOtp({
+                phone: contactNumber,
+                token: otpCode,
+                type: 'sms',
+            });
+
+            if (error) {
+                showSnackbar("Error verifying OTP. Please try again.", 'error');
+            } else {
                 showSnackbar("OTP verified successfully.", 'success');
             }
         } catch (err) {
