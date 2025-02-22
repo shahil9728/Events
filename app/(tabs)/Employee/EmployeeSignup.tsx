@@ -43,7 +43,7 @@ export default function EmployeeSignUp({ navigation }: NavigationProps) {
         } else {
             const { error } = await supabase
                 .from('users')
-                .insert({
+                .upsert({
                     id: data?.user?.id,
                     name,
                     email,
@@ -108,15 +108,15 @@ export default function EmployeeSignUp({ navigation }: NavigationProps) {
             const fileName = `resume_${Date.now()}.pdf`; // Unique name for the file
 
             console.log("Uploading resume to S3...");
-            const fileUrl = await uploadToS3(fileUri, fileName) as string | null;
+            // const fileUrl = await uploadToS3(fileUri, fileName) as string | null;
 
-            if (fileUrl) {
-                console.log("Resume uploaded successfully:", fileUrl);
-                setResume(fileUrl);
-            }
-            else {
-                setResume(null);
-            }
+            // if (fileUrl) {
+            //     console.log("Resume uploaded successfully:", fileUrl);
+            //     setResume(fileUrl);
+            // }
+            // else {
+            //     setResume(null);
+            // }
         } else {
             Alert.alert('Failed to upload resume.');
         }

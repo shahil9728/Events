@@ -4,40 +4,58 @@ import {
     StyleSheet,
     ScrollView,
     TouchableOpacity,
+    Alert,
 } from 'react-native';
 import { Button, Icon } from '@rneui/themed';
 import { useTheme } from '../../ThemeContext';
 import { OnBoardingProps } from '@/app/RootLayoutHelpers';
 import { ActivityIndicator } from 'react-native';
 import IconwithContainer from '@/components/IconwithContainer';
+import { useDispatch, useSelector } from 'react-redux';
+import { setRole } from '@/app/redux/Employee/onboarding/onboardingActions';
+import { supabase } from '@/lib/supabase';
 
 export default function OnBoarding({ route, navigation }: OnBoardingProps) {
     const { email, password, name } = route.params;
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const dispatch = useDispatch();
     const { theme } = useTheme();
     const styles = createStyles(theme);
+    const onboardingUser = useSelector((state: any) => state.onboardingReducer);
 
-    const handleOptionSelect = (option: string) => {
+    const handleOptionSelect = async (option: string) => {
         setIsLoading(true);
         setSelectedOption(option);
-        setTimeout(() => {
-            setIsLoading(false);
-            if (option === 'work') {
-                navigation.navigate('Phone')
-                setSelectedOption(null);
+        if (option === 'work') {
+            dispatch(setRole('EMPLOYEE'));
+            const { error } = await supabase
+                .from('users')
+                .upsert({
+                    id: onboardingUser.id,
+                    user_type: "EMPLOYEE",
+                });
+
+            if (error) {
+                Alert.alert('Error saving user data:', error.message);
             }
             else {
-                navigation.navigate('Onboarding1', {
-                    email,
-
-                    password,
-                    name,
-                    option,
-                })
-                setSelectedOption(null);
+                console.log('Successfully saved user role data');
             }
-        }, 1000);
+
+            navigation.navigate('Phone', { user_type: "EMPLOYEE" })
+            setSelectedOption(null);
+        }
+        else {
+            navigation.navigate('Onboarding1', {
+                email,
+                password,
+                name,
+                option,
+            })
+            setSelectedOption(null);
+        }
+        setIsLoading(false);
     }
 
     return (

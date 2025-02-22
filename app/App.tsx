@@ -32,6 +32,10 @@ import SignUp from './(tabs)/Onboarding/SignUp';
 import OnBoarding from './(tabs)/Onboarding/Onboarding';
 import OnBoarding1 from './(tabs)/Onboarding/Onboarding1';
 import Phone from './(tabs)/Onboarding/PhoneVerification/Phone';
+import PhoneFinal from './(tabs)/Onboarding/PhoneVerification/PhoneFinal';
+import ProfileUpdateScreen from './(tabs)/Onboarding/Profile/ProfileUpdateScreen';
+import Questions from './(tabs)/Onboarding/Questions/Question';
+import QuestionFinal from './(tabs)/Onboarding/Questions/QuestionFinal';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<ManagerListBase>();
@@ -100,6 +104,10 @@ export default function App() {
                     <Stack.Screen name="Onboarding" component={OnBoarding} options={{ headerBackVisible: false }} />
                     <Stack.Screen name="Onboarding1" component={OnBoarding1} options={{ headerBackVisible: false }} />
                     <Stack.Screen name="Phone" component={Phone} options={{ headerBackVisible: false }} />
+                    <Stack.Screen name="PhoneFinal" component={PhoneFinal} options={{ headerBackVisible: false }} />
+                    <Stack.Screen name="ProfileUpdateScreen" component={ProfileUpdateScreen} options={{ headerBackVisible: false }} />
+                    <Stack.Screen name="Questions" component={Questions} options={{ headerBackVisible: false }} />
+                    <Stack.Screen name="QuestionFinal" component={QuestionFinal} options={{ headerBackVisible: false }} />
                     <Stack.Screen
                         name="ManagerSignUp"
                         component={ManagerSignUp}

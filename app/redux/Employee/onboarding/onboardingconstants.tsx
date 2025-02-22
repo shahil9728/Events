@@ -1,4 +1,5 @@
 export const onboardingIntialState = {
+    id: '',
     email: '',
     password: '',
     name: '',
@@ -10,6 +11,8 @@ export const onboardingIntialState = {
     isLoading: false,
 };
 
+export const SET_ONBOARDING_DATA = 'SET_ONBOARDING_DATA';
+export const SET_ID = 'SET_ID';
 export const SET_EMAIL = 'SET_EMAIL';
 export const SET_PASSWORD = 'SET_PASSWORD';
 export const SET_NAME = 'SET_NAME';

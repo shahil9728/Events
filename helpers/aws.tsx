@@ -2,7 +2,7 @@ import AWS from 'aws-sdk';
 
 // AWS Configuration
 const S3_BUCKET = 'userresume9728';
-const REGION = 'ap-south-1'; 
+const REGION = 'ap-south-1';
 const ACCESS_KEY = 'AKIAVVZOOHA33V3UBNQZ';
 const SECRET_KEY = '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';
 
@@ -20,19 +20,23 @@ const s3 = new AWS.S3();
  * @param {string} fileName - The name of the file in the S3 bucket
  * @returns {Promise<string>} - The URL of the uploaded file
  */
-export const uploadToS3 = async (fileUri: string, fileName: string) => {
+export const uploadToS3 = async (fileUri: string, fileName: string, userId: string, folder: string) => {
     try {
+        const fileExtension = fileUri.split('.').pop()?.toLowerCase() || 'unknown';
+        const fileKey = `${folder}/${userId}/${fileName}.${fileExtension}`;
+
         // Fetch the file as a Blob
         const response = await fetch(fileUri);
+        if (!response.ok) throw new Error("Failed to fetch the file from the given URI");
+
         const fileBlob = await response.blob();
 
-        // S3 Upload Parameters
-        const params = {
+        const params: AWS.S3.PutObjectRequest = {
             Bucket: S3_BUCKET,
-            Key: fileName, // Unique file name in the bucket
+            Key: fileKey,
             Body: fileBlob,
             ContentType: fileBlob.type || 'application/octet-stream',
-            ACL: 'public-read', // Optional: Makes the file publicly accessible
+            ACL: 'public-read', 
         };
 
         // Upload the file to S3

@@ -1,4 +1,11 @@
-import { SET_EMAIL, SET_LANGUAGES, SET_NAME, SET_NUMBER, SET_NUMBER_VERIFIED, SET_PASSWORD, SET_PHOTOS, SET_ROLE } from "./onboardingconstants";
+import { SET_EMAIL, SET_ID, SET_LANGUAGES, SET_NAME, SET_NUMBER, SET_NUMBER_VERIFIED, SET_ONBOARDING_DATA, SET_PASSWORD, SET_PHOTOS, SET_ROLE } from "./onboardingconstants";
+
+export const setId = (id: string) => {
+    return {
+        type: SET_ID,
+        payload: id,
+    };
+}
 
 export const setEmail = (email: string) => {
     return {
@@ -53,5 +60,12 @@ export const setLanguages = (languages: string[]) => {
     return {
         type: SET_LANGUAGES,
         payload: languages,
+    };
+}
+
+export const setOnboardingData = (data: any) => {
+    return {
+        type: SET_ONBOARDING_DATA,
+        payload: data,
     };
 }
