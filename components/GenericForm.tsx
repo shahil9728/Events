@@ -6,7 +6,7 @@ import IconwithContainer from './IconwithContainer';
 
 interface GenericFormProps {
     children: React.ReactNode;
-    footerMsg: string;
+    footerMsg?: string;
     handleNext?: () => void;
     icons: { iconName: string; active: boolean }[];
     isLoading?: boolean;

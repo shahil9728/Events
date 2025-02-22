@@ -1,12 +1,11 @@
 import { useTheme } from '@/app/ThemeContext'
 import React, { useRef, useState } from 'react'
 import { StyleSheet, Text, TextInput, View } from 'react-native'
-import { TextInput as TextInput1 } from 'react-native-paper';
+// import { TextInput as TextInput1 } from 'react-native-paper';
 
 interface Phone2Props {
     otp: string[];
     setOtp: React.Dispatch<React.SetStateAction<string[]>>;
-    handleNext: () => void;
 }
 
 
@@ -24,7 +23,7 @@ const Phone2 = ({ otp, setOtp }: Phone2Props) => {
         newOtp[index] = text;
         setOtp(newOtp);
 
-        if (text && index < 4) {
+        if (text && index < 5) {
             inputRefs.current[index + 1]?.focus();
         }
     };
@@ -34,8 +33,17 @@ const Phone2 = ({ otp, setOtp }: Phone2Props) => {
     }
 
     const handleBackspace: BackspaceHandler = (text, index) => {
+        const newOtp = [...otp];
+
+        // If the current field is empty and backspace is pressed, move focus to the previous field
         if (!text && index > 0) {
+            newOtp[index - 1] = ''; // Clear the previous field as well
+            setOtp(newOtp);
             inputRefs.current[index - 1]?.focus();
+        } else {
+            // Otherwise, just clear the current field
+            newOtp[index] = '';
+            setOtp(newOtp);
         }
     };
 
@@ -46,7 +54,7 @@ const Phone2 = ({ otp, setOtp }: Phone2Props) => {
             <Text style={styles.subheading}>Sent on number</Text>
             <View style={styles.otpContainer}>
                 {otp.map((digit: string, index: number) => (
-                    <TextInput1
+                    <TextInput
                         key={index}
                         ref={(ref: TextInput | null) => (inputRefs.current[index] = ref)}
                         value={digit}
@@ -57,10 +65,8 @@ const Phone2 = ({ otp, setOtp }: Phone2Props) => {
                             }
                         }}
                         style={styles.otpInput}
-                        keyboardType="number-pad"
+                        keyboardType="phone-pad"
                         maxLength={1}
-                        placeholder="_"
-                        placeholderTextColor="#999"
                     />
                 ))}
             </View>
@@ -102,14 +108,16 @@ const createStyles = (theme: any) => StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginTop: 10,
+        backgroundColor: "transparent",
     },
     otpInput: {
-        borderWidth: 1,
+        borderBottomWidth: 1,
         borderColor: '#ccc',
+        backgroundColor: "transparent",
         padding: 10,
         textAlign: 'center',
         fontSize: 18,
-        color: '#333',
+        color: theme.headingColor,
         borderRadius: 8,
         width: 50,
         height: 50,

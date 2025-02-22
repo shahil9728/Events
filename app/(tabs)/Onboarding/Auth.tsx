@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Keyboard, StyleSheet, View, Text, TextInput, TouchableWithoutFeedback } from 'react-native'
+import { Keyboard, StyleSheet, View, Text, TextInput, TouchableWithoutFeedback, TouchableOpacity, Alert } from 'react-native'
 import { supabase } from '../../../lib/supabase'
 import { Button, Icon } from '@rneui/themed'
 import { User } from '@supabase/supabase-js';
@@ -9,10 +9,12 @@ import { useDispatch } from 'react-redux';
 import { setEmployeeId, setManagerId } from '../../redux/Employee/accountInfo/accountInfoActions';
 import { useTheme } from '../../ThemeContext';
 import { useSnackbar } from '@/components/SnackBar';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function Auth({ navigation }: NavigationProps) {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [passwordVisible, setPasswordVisible] = useState(false);
     const [loading, setLoading] = useState(false)
     const [user, setUser] = useState<User | null>(null)
     const [userType, setUserType] = useState(null)
@@ -23,7 +25,7 @@ export default function Auth({ navigation }: NavigationProps) {
 
     useEffect(() => {
         const fetchSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session }, error } = await supabase.auth.getSession();
             setUser(session?.user ?? null);
             if (session?.user) {
                 await checkUserType(session.user);
@@ -50,20 +52,33 @@ export default function Auth({ navigation }: NavigationProps) {
     const checkUserType = async (user: any) => {
         const { data, error } = await supabase
             .from('users')
-            .select('user_type')
+            .select('user_type,phoneVerified')
             .eq('id', user?.id)
-            .single()
+            .maybeSingle()
 
         if (error) {
+            console.error("Error fetching user data:", error.message);
+            return;
+        }
+        if (data == null) {
+            console.log("No user data found in db. User is maybe registerd");
+            return;
+        }
+        else if (data?.user_type === null) {
+            navigation.navigate('Onboarding', {
+                email: user.email ?? '',
+                password: password,
+                name: user.email ?? '',
+            });
+        } else if (data && !data?.phoneVerified) {
             if (user) {
-                navigation.navigate('Onboarding', {
-                    email: user.email ?? '',
-                    password: password,
-                    name: user.email ?? '',
-                });
+                // Case when user leaves without phone verification
+                navigation.navigate('Phone', { user_type: data?.user_type });
             }
         } else {
-            setUserType(data.user_type)
+            if (data) {
+                setUserType(data.user_type);
+            }
         }
     }
 
@@ -93,9 +108,8 @@ export default function Auth({ navigation }: NavigationProps) {
             email: email,
             password: password,
         })
-
         if (error) {
-            console.log("error", error);
+            console.log("error1", error);
             showSnackbar(error.message, "error")
         }
         setLoading(false)
@@ -118,7 +132,7 @@ export default function Auth({ navigation }: NavigationProps) {
                         <Button
                             title="Continue with Facebook"
                             disabled={loading}
-                            onPress={() => navigation.navigate('EmployeeSignUp')}
+                            onPress={() => navigation.navigate('ManagerSignUp')}
                             icon={<Icon name='facebook' type='font-awesome' size={20} color={theme.secondaryColor} />}
                             buttonStyle={styles.socialButtonStyle}
                             containerStyle={styles.socialButtonContainer}
@@ -150,9 +164,20 @@ export default function Auth({ navigation }: NavigationProps) {
                                 placeholderTextColor={theme.lightGray2}
                                 onChangeText={(text) => setPassword(text)}
                                 value={password}
-                                secureTextEntry={true}
+                                secureTextEntry={!passwordVisible}
                                 autoCapitalize='none'
                             />
+                            <TouchableOpacity
+                                style={styles.eyeIcon}
+                                onPress={() => setPasswordVisible(!passwordVisible)}
+                            >
+                                <Ionicons
+                                    name={passwordVisible ? "eye-off" : "eye"}
+                                    size={24}
+                                    color="gray"
+                                />
+                            </TouchableOpacity>
+
                         </View>
                         <Button
                             title="Sign In"
@@ -206,7 +231,7 @@ const createStyles = (theme: any) => StyleSheet.create({
         height: "100%",
     },
     textInputCont: {
-        padding: 5,
+        padding: 15,
         paddingHorizontal: 15,
         borderRadius: 50,
         backgroundColor: theme.lightGray1,
@@ -255,5 +280,10 @@ const createStyles = (theme: any) => StyleSheet.create({
         textAlign: 'center',
         flex: 1,
     },
+    eyeIcon: {
+        position: 'absolute',
+        right: 15,
+        top: '50%',
+    }
 })
 

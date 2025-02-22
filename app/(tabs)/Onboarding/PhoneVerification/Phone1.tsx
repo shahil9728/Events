@@ -1,16 +1,10 @@
 import { useTheme } from '@/app/ThemeContext'
-import React, { useCallback } from 'react'
-import { StyleSheet, Text, View } from 'react-native'
-import { TextInput } from 'react-native-paper';
+import React from 'react'
+import { StyleSheet, Text, TextInput, View } from 'react-native'
 
 const Phone1 = ({ contactNumber, setContactNumber }: { contactNumber: string, setContactNumber: React.Dispatch<React.SetStateAction<string>> }) => {
     const { theme } = useTheme();
     const styles = createStyles(theme);
-
-    const handleInputChange = useCallback((text: string) => {
-        setContactNumber(text);
-    }, [setContactNumber]);
-
 
     return (
         <View style={styles.container}>
@@ -20,10 +14,9 @@ const Phone1 = ({ contactNumber, setContactNumber }: { contactNumber: string, se
                     style={styles.textInput}
                     placeholder="Enter Number"
                     placeholderTextColor={theme.lightGray2}
-                    onChangeText={handleInputChange}
+                    onChangeText={(text) => setContactNumber(text)}
                     value={contactNumber}
-                    keyboardType='numeric'
-                    textColor={theme.secondaryColor}
+                    keyboardType='phone-pad'
                 />
             </View>
         </View>
@@ -43,7 +36,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     textInputCont: {
         marginTop: 20,
-        padding: 5,
+        padding: 15,
         paddingHorizontal: 15,
         borderRadius: 50,
         backgroundColor: theme.lightGray1,
@@ -54,6 +47,7 @@ const createStyles = (theme: any) => StyleSheet.create({
         width: "100%",
         borderBottomWidth: 0,
         fontSize: 16,
+        color: theme.secondaryColor,
     },
 
 })

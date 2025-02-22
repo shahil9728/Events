@@ -1,18 +1,23 @@
 import React, { useState } from 'react'
-import { Keyboard, StyleSheet, View, Text, TextInput, TouchableWithoutFeedback } from 'react-native'
+import { Keyboard, StyleSheet, View, Text, TextInput, TouchableWithoutFeedback, TouchableOpacity } from 'react-native'
 import { supabase } from '../../../lib/supabase'
 import { Button, Icon } from '@rneui/themed'
 import Loader from '../../../components/Loader'
 import { NavigationProps } from '@/app/RootLayoutHelpers';
 import { useTheme } from '../../ThemeContext';
 import { useSnackbar } from '@/components/SnackBar';
+import { useDispatch } from 'react-redux'
+import { setId, setOnboardingData } from '@/app/redux/Employee/onboarding/onboardingActions'
+import { Ionicons } from '@expo/vector-icons'
 
 export default function SignUp({ navigation }: NavigationProps) {
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
+    const [password, setPassword] = useState('');
+    const [passwordVisible, setPasswordVisible] = useState(false);
     const [loading, setLoading] = useState(false)
     const { theme } = useTheme();
+    const dispatch = useDispatch();
     const styles = createStyles(theme);
     const { showSnackbar } = useSnackbar();
 
@@ -25,7 +30,7 @@ export default function SignUp({ navigation }: NavigationProps) {
             return
         }
 
-        const { error } = await supabase.auth.signUp({
+        const { data: session, error: error1 } = await supabase.auth.signUp({
             email: email,
             password: password,
             options: {
@@ -35,12 +40,31 @@ export default function SignUp({ navigation }: NavigationProps) {
             }
         })
 
-        if (error) showSnackbar(error.message, "error")
-        else navigation.navigate('Onboarding', {
-            email: email,
-            password: password,
-            name: name
-        })
+        console.log("data", session?.user?.id, error1)
+        if (error1) showSnackbar(error1.message, "error")
+        else {
+            dispatch(setOnboardingData({ email: email, name: name, id: session?.user?.id }))
+            const { error } = await supabase
+                .from('users')
+                .insert({
+                    id: session?.user?.id,
+                    email: email,
+                    name: name,
+                    created_at: new Date(),
+                });
+
+            if (error) {
+                console.log('Error saving user data:', error.message);
+            }
+            else {
+                console.log('Successfully saved user data');
+            }
+            navigation.navigate('Onboarding', {
+                email: email,
+                password: password,
+                name: name
+            })
+        }
         setLoading(false)
     }
 
@@ -102,9 +126,19 @@ export default function SignUp({ navigation }: NavigationProps) {
                                 placeholderTextColor={theme.lightGray2}
                                 onChangeText={(text) => setPassword(text)}
                                 value={password}
-                                secureTextEntry={true}
+                                secureTextEntry={!passwordVisible}
                                 autoCapitalize='none'
                             />
+                            <TouchableOpacity
+                                style={styles.eyeIcon}
+                                onPress={() => setPasswordVisible(!passwordVisible)}
+                            >
+                                <Ionicons
+                                    name={passwordVisible ? "eye-off" : "eye"}
+                                    size={24}
+                                    color="gray"
+                                />
+                            </TouchableOpacity>
                         </View>
                         <Button
                             title="Join Now"
@@ -161,8 +195,7 @@ const createStyles = (theme: any) => StyleSheet.create({
         height: "100%",
     },
     textInputCont: {
-        padding: 5,
-        paddingHorizontal: 15,
+        padding: 15,
         borderRadius: 50,
         backgroundColor: theme.lightGray1,
         width: "100%"
@@ -210,5 +243,10 @@ const createStyles = (theme: any) => StyleSheet.create({
         textAlign: 'center',
         flex: 1,
     },
+    eyeIcon: {
+        position: 'absolute',
+        right: 15,
+        top: '50%',
+    }
 })
 

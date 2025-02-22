@@ -21,7 +21,11 @@ export type RootStackParamList = {
     EmployeeInbox: undefined;
     SignUp: undefined;
     ManagerDashboard: undefined;
-    Phone: undefined;
+    Phone: { user_type: string };
+    PhoneFinal: undefined;
+    ProfileUpdateScreen: { name1: string };
+    Questions: undefined;
+    QuestionFinal: undefined;
 };
 
 export type ManagerListBase = {
@@ -48,6 +52,8 @@ export type EmployeeEventScreenProps = NativeStackScreenProps<RootStackParamList
 export type ManagerEventScreenProps = NativeStackScreenProps<RootStackParamList, 'ManagerEventScreen'>;
 export type OnBoardingProps = NativeStackScreenProps<RootStackParamList, 'Onboarding'>;
 export type OnBoarding1Props = NativeStackScreenProps<RootStackParamList, 'Onboarding1'>;
+export type ProfileUpdateScreenRouteProp = NativeStackScreenProps<RootStackParamList, 'ProfileUpdateScreen'>;
+export type PhoneProps = NativeStackScreenProps<RootStackParamList, 'Phone'>;
 
 export type NavigationProps =
     | NativeStackScreenProps<RootStackParamList, keyof RootStackParamList>
@@ -61,4 +67,6 @@ export type ManagerHeaderScreenProps = {
 export type EmployeeHeaderScreenProps = {
     navigation: BottomTabNavigationProp<EmployeeListBase, keyof EmployeeListBase>;
 };
+
+
 
