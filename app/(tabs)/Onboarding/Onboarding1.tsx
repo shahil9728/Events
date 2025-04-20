@@ -37,7 +37,7 @@ export default function OnBoarding1({ navigation }: OnBoarding1Props) {
                         borderColor: theme.secondaryColor,
                         borderWidth: 1,
                     }}
-                    onPress={() => { navigation.navigate('AddEvent', { mode: OperationType.UPDATE, eventData: undefined }) }}
+                    onPress={() => { navigation.navigate('AddEvent', { mode: OperationType.CREATE, eventData: undefined }) }}
                     icon={
                         <IconwithContainer
                             iconName="chevron-forward-outline"

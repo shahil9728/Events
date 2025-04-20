@@ -10,6 +10,7 @@ import { useDispatch } from 'react-redux'
 import { setId, setOnboardingData } from '@/app/redux/Employee/onboarding/onboardingActions'
 import { Ionicons } from '@expo/vector-icons'
 import EDialog from '@/components/EDialog'
+import ETextInputContainer from '@/components/ETextInputContainer'
 
 export default function SignUp({ navigation }: NavigationProps) {
     const [name, setName] = useState('')
@@ -104,35 +105,23 @@ export default function SignUp({ navigation }: NavigationProps) {
                         <View style={{ flex: 1, height: 1, backgroundColor: 'gray' }} />
                     </View>
                     <View style={styles.verticallySpaced}>
-                        <View style={styles.textInputCont}>
-                            <TextInput
-                                style={styles.textInput}
-                                placeholder="Enter Name"
-                                placeholderTextColor={theme.lightGray2}
-                                onChangeText={(text) => setName(text)}
-                                value={name}
-                            />
-                        </View>
-                        <View style={styles.textInputCont}>
-                            <TextInput
-                                style={styles.textInput}
-                                placeholder="Enter Email"
-                                placeholderTextColor={theme.lightGray2}
-                                onChangeText={(text) => setEmail(text)}
-                                value={email}
-                                autoCapitalize='none'
-                            />
-                        </View>
-                        <View style={styles.textInputCont}>
-                            <TextInput
-                                style={styles.textInput}
-                                placeholder="Enter Password"
-                                placeholderTextColor={theme.lightGray2}
-                                onChangeText={(text) => setPassword(text)}
-                                value={password}
-                                secureTextEntry={!passwordVisible}
-                                autoCapitalize='none'
-                            />
+                        <ETextInputContainer
+                            placeholder="Enter Name"
+                            value={name}
+                            onChangeText={(text) => setName(text)}
+                        />
+                        <ETextInputContainer
+                            placeholder="Enter Email"
+                            value={email}
+                            onChangeText={(text) => setEmail(text)}
+                            autoCapitalize='none'
+                        />
+                        <ETextInputContainer
+                            placeholder="Enter Password"
+                            value={password}
+                            onChangeText={(text) => setPassword(text)}
+                            secureTextEntry={!passwordVisible}
+                        >
                             <TouchableOpacity
                                 style={styles.eyeIcon}
                                 onPress={() => setPasswordVisible(!passwordVisible)}
@@ -143,7 +132,7 @@ export default function SignUp({ navigation }: NavigationProps) {
                                     color="gray"
                                 />
                             </TouchableOpacity>
-                        </View>
+                        </ETextInputContainer>
                         <Button
                             title="Join Now"
                             disabled={loading}

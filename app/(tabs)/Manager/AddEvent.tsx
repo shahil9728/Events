@@ -307,6 +307,7 @@ const AddEvent = ({ navigation, route }: AddEventProps) => {
                     value={eventDescription}
                     onChangeText={setEventDescription}
                     placeholderTextColor="#787975"
+                    multiline={true}
                 />
                 <View>
                     <Text style={styles.subheading}>Employee Details</Text>

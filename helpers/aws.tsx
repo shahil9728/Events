@@ -1,13 +1,14 @@
 import AWS from 'aws-sdk';
-import { AWS_ACCESS_KEY, AWS_SECRET_KEY } from '@env';
 
 // AWS Configuration
 const S3_BUCKET = 'userresume9728';
 const REGION = 'ap-south-1';
+const ACCESS_KEY = 'AKIAVVZOOHA33V3UBNQZ';
+const SECRET_KEY = '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';
 
 AWS.config.update({
-    accessKeyId: AWS_ACCESS_KEY,
-    secretAccessKey: AWS_SECRET_KEY,
+    accessKeyId: ACCESS_KEY,
+    secretAccessKey: SECRET_KEY,
     region: REGION,
 });
 

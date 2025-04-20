@@ -9,11 +9,14 @@ interface ETextInputContainerProps {
     keyboardType?: 'default' | 'numeric' | 'email-address' | 'phone-pad';
     conatinerStyle?: any;
     inputStyle?: TextStyle | TextStyle[];
-    maxLength?: number; 
+    maxLength?: number;
+    children?: React.ReactNode;
+    secureTextEntry?: boolean;
+    autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
 }
 
 const ETextInputContainer = forwardRef<TextInput, ETextInputContainerProps>(
-    ({ placeholder, value, onChangeText, keyboardType = 'default', conatinerStyle, inputStyle,maxLength }, ref) => {
+    ({ placeholder, value, onChangeText, keyboardType = 'default', conatinerStyle, inputStyle, maxLength, secureTextEntry, children, autoCapitalize }, ref) => {
         const { theme } = useTheme();
         const styles = useStyles(theme);
 
@@ -28,7 +31,10 @@ const ETextInputContainer = forwardRef<TextInput, ETextInputContainerProps>(
                     value={value}
                     keyboardType={keyboardType}
                     maxLength={maxLength}
+                    secureTextEntry={secureTextEntry}
+                    autoCapitalize={autoCapitalize}
                 />
+                {children}
             </View>
         );
     }
@@ -36,7 +42,7 @@ const ETextInputContainer = forwardRef<TextInput, ETextInputContainerProps>(
 
 const useStyles = (theme: any) => StyleSheet.create({
     container: {
-        padding: 8,
+        paddingVertical: 12,
         paddingHorizontal: 15,
         borderRadius: 50,
         backgroundColor: theme.lightGray1,

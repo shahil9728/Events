@@ -12,6 +12,7 @@ import { useSnackbar } from '@/components/SnackBar';
 import { Ionicons } from '@expo/vector-icons';
 import EDialog from '@/components/EDialog';
 import { ICONTYPE } from '@/app/globalConstants';
+import ETextInputContainer from '@/components/ETextInputContainer';
 
 export default function Auth({ navigation }: NavigationProps) {
     const [email, setEmail] = useState('')
@@ -139,7 +140,7 @@ export default function Auth({ navigation }: NavigationProps) {
                 } else if (userType === 'MANAGER') {
                     await getManagerProfile();
                     dispatch(setManagerId(user.id));
-                    navigation.navigate('RenderManagerTabs');
+                    navigation.navigate('RenderManagerTabs', { activeTab: "" });
                 }
             }
         };
@@ -205,26 +206,18 @@ export default function Auth({ navigation }: NavigationProps) {
                         <View style={{ flex: 1, height: 1, backgroundColor: 'gray' }} />
                     </View>
                     <View style={styles.verticallySpaced}>
-                        <View style={styles.textInputCont}>
-                            <TextInput
-                                style={styles.textInput}
-                                placeholder="Enter Email"
-                                placeholderTextColor={theme.lightGray2}
-                                onChangeText={(text) => setEmail(text)}
-                                value={email}
-                                autoCapitalize='none'
-                            />
-                        </View>
-                        <View style={styles.textInputCont}>
-                            <TextInput
-                                style={styles.textInput}
-                                placeholder="Enter Password"
-                                placeholderTextColor={theme.lightGray2}
-                                onChangeText={(text) => setPassword(text)}
-                                value={password}
-                                secureTextEntry={!passwordVisible}
-                                autoCapitalize='none'
-                            />
+                        <ETextInputContainer
+                            placeholder="Enter Email"
+                            value={email}
+                            onChangeText={(text) => setEmail(text)}
+                            autoCapitalize='none'
+                        />
+                        <ETextInputContainer
+                            placeholder="Enter Password"
+                            value={password}
+                            onChangeText={(text) => setPassword(text)}
+                            secureTextEntry={!passwordVisible}
+                        >
                             <TouchableOpacity
                                 style={styles.eyeIcon}
                                 onPress={() => setPasswordVisible(!passwordVisible)}
@@ -235,8 +228,7 @@ export default function Auth({ navigation }: NavigationProps) {
                                     color="gray"
                                 />
                             </TouchableOpacity>
-
-                        </View>
+                        </ETextInputContainer>
                         <Button
                             title="Sign In"
                             disabled={loading}
