@@ -36,7 +36,7 @@ const Questions = ({ navigation }: NavigationProps) => {
     ];
 
     return (
-        <View>
+        <View style={{ flex: 1, justifyContent: 'space-between', alignItems: 'center', paddingBottom: 80 }}>
             {currentScreen === 1 && (
                 <GenericForm handleNext={handleNext} icons={screenIcons} >
                     <Question1 answer={answers.question1} setAnswer={(value: number) => setAnswers({ ...answers, question1: value })} />

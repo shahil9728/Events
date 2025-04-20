@@ -1,5 +1,6 @@
 import { NavigationProps } from '@/app/RootLayoutHelpers';
 import { useTheme } from '@/app/ThemeContext'
+import SuccessCheckmark from '@/components/SuccessCheckMark';
 import React from 'react'
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 
@@ -11,7 +12,7 @@ const QuestionFinal = ({ navigation }: NavigationProps) => {
             <View style={{ marginTop: 50, alignItems: "center" }}>
                 <Text style={styles.heading}>Hey buddy, you are all set.</Text>
                 <Text style={styles.subheading}>Fetch top events for you right now.</Text>
-                <Image source={require('../../../../assets/images/check.gif')} />
+                <SuccessCheckmark />
             </View>
             <View style={{ width: "100%" }}>
                 <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('RenderEmployeeTabs')}>

@@ -6,10 +6,12 @@ import { Icon } from '@rneui/themed';
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
-import { getFriendlydate } from '../utils';
+import { getFriendlydate, getLabelFromList } from '../utils';
 import { Ionicons } from '@expo/vector-icons';
 import Collapsible from 'react-native-collapsible';
 import { FlatList } from 'react-native';
+import { EVENT_CATEGORIES } from '../employeeConstants';
+import EmployeeProfileModalCard from '@/components/EmployeeProfileModal';
 
 
 const ManagerEventScreen = ({ navigation, route }: ManagerEventScreenProps) => {
@@ -17,26 +19,29 @@ const ManagerEventScreen = ({ navigation, route }: ManagerEventScreenProps) => {
         title = 'Samay Raina Unfiltered',
         startDate = 'Thu 16 Jan 2025 - Sun 27 Apr 2025',
         endDate = 'Sun 27 Apr 2025',
-        eventCategory = 'Comedy',
-        location = 'Shilpakala Vedika: Hyderabad',
-        eventDescription = 'Last leg of the Unfiltered India tour!',
-        eventImage = 'https://via.placeholder.com/300x150',
-        eventSalary = '₹1500 onwards',
+        metadata = {
+            eventCategory: route.params?.metadata?.eventCategory || 'Comedy',
+            location: route.params?.metadata?.location || 'Shilpakala Vedika: Hyderabad',
+            description: route.params?.metadata?.description || 'Last leg of the Unfiltered India tour!',
+            freelancer: [],
+        },
         id = '1',
     } = route.params || {};
 
+    const { theme } = useTheme();
+    const styles = createStyles(theme);
+    const { showSnackbar } = useSnackbar();
     const [data, setData] = useState<any>([]);
-    const [reqloading, setReqLoading] = useState(false);
+    const [reqLoadingId, setReqLoadingId] = useState<string | null>(null);
     const [activeSection, setActiveSection] = useState<number | null>(null);
+    const [isProfileModalVisible, setProfileModalVisible] = useState(false);
+    const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
+
 
     const toggleSection = (section: number) => {
         setActiveSection(activeSection === section ? null : section);
     };
 
-    const accountInfo = useSelector((store: { accountInfo: any }) => store.accountInfo);
-    const { showSnackbar } = useSnackbar();
-    const { theme } = useTheme();
-    const styles = createStyles(theme);
 
     const fetchEmployeeData = async () => {
         const { data, error } = await supabase
@@ -56,7 +61,7 @@ const ManagerEventScreen = ({ navigation, route }: ManagerEventScreenProps) => {
     }, [])
 
     const updateRequestStatus = async (employee_id: string, event_id: string, status: string) => {
-        setReqLoading(true);
+        setReqLoadingId(employee_id);
         try {
             const { error } = await supabase.from("employee_to_manager").update({ req_status: status }).eq("employee_id", employee_id).eq("event_id", event_id);
             if (error) {
@@ -65,53 +70,65 @@ const ManagerEventScreen = ({ navigation, route }: ManagerEventScreenProps) => {
         } catch (error) {
             console.error('Error updating request status:', error);
         } finally {
-            setReqLoading(false);
+            setReqLoadingId(null);
             fetchEmployeeData();
             showSnackbar(`Request ${status} successfully!`, "success");
         }
     };
 
-
     const acceptedFreelancers = data?.filter((item: { req_status: string }) => item.req_status === "accepted");
     const pendingRequests = data?.filter((item: { req_status: string; request_initiator: string; id: string }) => item.req_status === "pending" && item.request_initiator === "EMPLOYEE");
     const managerRequests = data?.filter((item: { request_initiator: string; id: string; req_status: string; }) => item.request_initiator === "MANAGER" && item.req_status === "pending");
 
-    const renderEmployee = ({ item }: { item: { employee_details: { name: string; id: string; } } }) => (
-        <View style={styles.employeeCard}>
-            <Text style={styles.employeeName}>{item.employee_details.name}</Text>
-        </View>
+    const renderEmployee = ({ item }: { item: { employee_details: { name: string; id: string; }; employee_id: string } }) => (
+        <>
+            <TouchableOpacity onPress={() => {
+                setSelectedEmployeeId(item.employee_id);
+                setProfileModalVisible(true)
+            }}>
+                <View style={styles.employeeCard}>
+                    <Text style={styles.employeeName}>{item.employee_details.name}</Text>
+                </View>
+            </TouchableOpacity>
+        </>
     );
 
-    const renderPendingEmployee = ({ item }: { item: { employee_details: { name: string, id: string }, manager_id: string; employee_id: string; event_id: string } }) => (
-        <View style={styles.employeeCard}>
-            <Text style={styles.employeeName}>{item.employee_details.name}</Text>
-            <View style={styles.actions}>
-                {reqloading ? <ActivityIndicator size="small" color={theme.primaryColor} /> : (
-                    <>
-                        <TouchableOpacity onPress={() => updateRequestStatus(item.employee_id, item.event_id, 'accepted')}>
-                            <Ionicons name="checkmark" size={24} color="green" />
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => updateRequestStatus(item.employee_id, item.event_id, 'rejected')}>
-                            <Ionicons name="close" size={24} color="red" />
-                        </TouchableOpacity>
-                    </>
-                )}
-            </View>
-        </View>
-    );
+    const renderPendingEmployee = ({ item }: { item: { employee_details: { name: string, id: string }, manager_id: string; employee_id: string; event_id: string } }) => {
+        return (
+            <>
+                <TouchableOpacity onPress={() => {
+                    setSelectedEmployeeId(item.employee_id);
+                    setProfileModalVisible(true)
+                }}>
+                    <View style={styles.employeeCard}>
+                        <Text style={styles.employeeName}>{item.employee_details.name}</Text>
+                        <View style={styles.actions}>
+                            {reqLoadingId == item.employee_id ? <ActivityIndicator size="small" color={theme.primaryColor} /> : (
+                                <>
+                                    <TouchableOpacity onPress={() => updateRequestStatus(item.employee_id, item.event_id, 'accepted')}>
+                                        <Ionicons name="checkmark" size={24} color="green" />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => updateRequestStatus(item.employee_id, item.event_id, 'rejected')}>
+                                        <Ionicons name="close" size={24} color="red" />
+                                    </TouchableOpacity>
+                                </>
+                            )}
+                        </View>
+                    </View >
+                </TouchableOpacity>
+            </>
+        )
+    };
 
 
     return (
         <ScrollView style={styles.container}>
-            {/* Event Image */}
             <View style={styles.imageContainer}>
                 <Image
-                    source={{ uri: eventImage }}
+                    source={require('../../../assets/images/wedding.jpg')}
+                    // source={{ uri: eventImage }}
                     style={styles.eventImage}
                 />
-                <TouchableOpacity style={styles.favoriteIcon}>
-                    <Icon name="heart" type='font-awesome' size={20} color="#fff" />
-                </TouchableOpacity>
             </View>
 
             <View style={styles.titleContainer}>
@@ -128,13 +145,13 @@ const ManagerEventScreen = ({ navigation, route }: ManagerEventScreenProps) => {
                 <View style={styles.iconWithTextcont}>
                     <TouchableOpacity style={styles.iconWithText}>
                         <Icon name="school-outline" type='ionicon' size={15} color={"#F1F0E6"} />
-                        <Text style={[styles.detailItem, { color: "#F1F0E6" }]}>{eventCategory}</Text>
+                        <Text style={[styles.detailItem, { color: "#F1F0E6" }]}>{getLabelFromList(metadata.eventCategory, EVENT_CATEGORIES)}</Text>
                     </TouchableOpacity>
                 </View>
                 <View style={styles.iconWithTextcont}>
                     <TouchableOpacity style={styles.iconWithText}>
                         <Icon name="map-pin" type='feather' size={15} color={"#F1F0E6"} />
-                        <Text style={[styles.detailItem, { color: "#F1F0E6" }]}>{location}</Text>
+                        <Text style={[styles.detailItem, { color: "#F1F0E6" }]}>{metadata.location}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -143,9 +160,13 @@ const ManagerEventScreen = ({ navigation, route }: ManagerEventScreenProps) => {
             <View style={styles.aboutSection}>
                 <View style={styles.aboutTitle}>
                     <Text style={styles.sectionTitle}>About The Event</Text>
-                    <Text style={[styles.sectionTitle, { color: theme.headingColor, fontSize: 18 }]}>{eventSalary.split("/")[0]}<Text style={{ fontSize: 12, color: theme.lightGray2 }}>/ {eventSalary.split("/")[1]}</Text></Text>
+                    <View>
+                        <Text style={styles.salary}>{metadata.freelancer[0]?.price?.toString().split("/")[0] || 'N/A'} Rs
+                        </Text>
+                        <Text style={styles.perMonth}>Starting from</Text>
+                    </View>
                 </View>
-                <Text style={styles.descriptionText}>{eventDescription}</Text>
+                <Text style={styles.descriptionText}>{metadata.description}</Text>
             </View>
 
             <View style={styles.bookingSection}>
@@ -167,7 +188,7 @@ const ManagerEventScreen = ({ navigation, route }: ManagerEventScreenProps) => {
 
                 {/* Pending Requests */}
                 <TouchableOpacity onPress={() => toggleSection(2)} style={styles.header}>
-                    <Text style={styles.headerText}>Freelancer Requests on this Event</Text>
+                    <Text style={styles.headerText}>Freelancer requests on this Event</Text>
                     <View style={{ transform: [{ rotate: activeSection === 2 ? '90deg' : '0deg' }] }}>
                         <Icon name="chevron-forward" type="ionicon" size={20} color="#fff" />
                     </View>
@@ -197,6 +218,7 @@ const ManagerEventScreen = ({ navigation, route }: ManagerEventScreenProps) => {
                     />
                 </Collapsible>
             </View>
+            <EmployeeProfileModalCard isVisible={isProfileModalVisible} setVisible={setProfileModalVisible} employee_id={selectedEmployeeId} />
         </ScrollView >
     );
 };
@@ -307,12 +329,22 @@ const createStyles = (theme: any) => StyleSheet.create({
     employeeName: {
         fontSize: 14,
         fontWeight: 'bold',
-        color: theme.headingColor,
+        color: theme.primaryColor,
     },
     actions: {
         width: "30%",
         flexDirection: 'row',
         justifyContent: 'space-between',
+    },
+    salary: {
+        fontSize: 22,
+        color: '#F1F0E6',
+        fontWeight: 'bold',
+    },
+    perMonth: {
+        fontSize: 12,
+        textAlign: 'center',
+        color: theme.lightGray2,
     },
 
 });

@@ -5,19 +5,20 @@ import { StyleSheet, TouchableOpacity } from 'react-native'
 
 type IconwithContainerProps = {
     iconName?: string;
+    iconColor?: string;
     onPress?: () => void;
     children?: React.ReactNode;
 };
 
 
-const IconwithContainer: React.FC<IconwithContainerProps> = ({ iconName = 'chevron-forward-outline', onPress, children }) => {
+const IconwithContainer: React.FC<IconwithContainerProps> = ({ iconName = 'chevron-forward-outline', onPress, children, iconColor }) => {
     const { theme } = useTheme();
     const styles = createStyles(theme);
 
     return (
         <TouchableOpacity style={styles.IconContainer} onPress={onPress}>
             {children ? children : (
-                <Icon name={iconName} type='ionicon' color={theme.headingColor} />
+                <Icon name={iconName} type='ionicon' color={iconColor ?? theme.headingColor} />
             )}
         </TouchableOpacity>
     )

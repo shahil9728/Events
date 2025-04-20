@@ -1,8 +1,8 @@
-import { DarkTheme, DefaultTheme, NavigationContainer, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 import Auth from './(tabs)/Onboarding/Auth';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -36,39 +36,81 @@ import PhoneFinal from './(tabs)/Onboarding/PhoneVerification/PhoneFinal';
 import ProfileUpdateScreen from './(tabs)/Onboarding/Profile/ProfileUpdateScreen';
 import Questions from './(tabs)/Onboarding/Questions/Question';
 import QuestionFinal from './(tabs)/Onboarding/Questions/QuestionFinal';
+import { Image, TouchableOpacity, View } from 'react-native';
+import { Icon } from '@rneui/themed';
+import { ICONTYPE, OperationType } from './globalConstants';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<ManagerListBase>();
 const Tab1 = createBottomTabNavigator<EmployeeListBase>();
 
 export default function App() {
+    const [appReady, setAppReady] = useState(false);
     const colorScheme = useColorScheme();
-    const [loaded] = useFonts({
+
+    const [fontsLoaded] = useFonts({
         SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     });
 
     useEffect(() => {
-        if (loaded) {
+        const prepareSplash = async () => {
+            await SplashScreen.preventAutoHideAsync();
+        };
+        prepareSplash();
+    }, []);
+
+    useEffect(() => {
+        async function prepare() {
+            try {
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            } catch (e) {
+                console.warn(e);
+            } finally {
+                setAppReady(true);
+            }
+        }
+        prepare();
+    }, []);
+
+    useEffect(() => {
+        if (appReady && fontsLoaded) {
             SplashScreen.hideAsync();
         }
-    }, [loaded]);
+    }, [appReady, fontsLoaded]);
 
-    if (!loaded) {
+    if (!appReady || !fontsLoaded) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
+                <Image
+                    source={require('../assets/images/logo1.png')}
+                    style={{ width: 250, height: 250, resizeMode: 'contain' }}
+                />
+            </View>
+        );
+    }
+
+
+    if (!fontsLoaded) {
         return null;
     }
 
     function RenderEmployeeTabs() {
         return (<Tab1.Navigator
             initialRouteName="Employee"
+            screenOptions={({ navigation }) => ({
+                headerTitle: () => (
+                    <Image
+                        source={require('../assets/images/headerLogo.png')}
+                        style={{ width: 100, height: 30, resizeMode: 'contain' }}
+                    />
+                ),
+                headerBackVisible: false,
+                headerRight: () => <EmployeeHeader navigation={navigation} />,
+            })}
             tabBar={(props) => <BottomNavigation {...props} />}
         >
-            <Tab1.Screen name="Employee" component={Employee} options={({ navigation }) => ({
-                title: 'Home', headerBackVisible: false, headerRight: () => <EmployeeHeader navigation={navigation} />,
-            })} />
-            <Tab1.Screen name="EmployeeSettings" component={EmployeeSettings} options={({ navigation }) => ({
-                title: 'Profile', headerBackVisible: false, headerRight: () => <EmployeeHeader navigation={navigation} />,
-            })} />
-
+            <Tab1.Screen name="Employee" component={Employee} options={{ title: 'Home' }} />
+            <Tab1.Screen name="EmployeeSettings" component={EmployeeSettings} options={() => ({ title: 'Profile', })} />
         </Tab1.Navigator>)
     };
 
@@ -77,37 +119,59 @@ export default function App() {
             <Tab.Navigator
                 initialRouteName="ManagerDashboard"
                 tabBar={(props) => <BottomNavigation {...props} />}
+                screenOptions={({ navigation }) => ({
+                    headerStyle: {
+                        height: 90,
+                    },
+                    headerBackVisible: false,
+                    headerTitle: () => (
+                        <Image
+                            source={require('../assets/images/headerLogo.png')}
+                            style={{ width: 100, height: 30, resizeMode: 'contain' }}
+                        />
+                    ),
+                    headerRight: () => <ManagerHeader navigation={navigation} />,
+                })}
             >
-                <Tab.Screen name="ManagerDashboard" component={ManagerDashboard} options={({ navigation }) => ({
-                    title: 'Home', headerTitle: "Manager", headerBackVisible: false, headerRight: () => <ManagerHeader navigation={navigation} />,
-                })} />
-                <Tab.Screen name="ManagerMyEvents" component={ManagerMyEvents} options={({ navigation }) => ({
-                    title: 'My Events', headerBackVisible: false, headerRight: () => <ManagerHeader navigation={navigation} />,
-                })} />
-                <Tab.Screen name="ManagerChat" component={ManagerChat} options={({ navigation }) => ({
-                    title: 'Chat', headerBackVisible: false, headerRight: () => <ManagerHeader navigation={navigation} />,
-                })} />
-                <Tab.Screen name="ManagerSettings" component={ManagerSettings} options={({ navigation }) => ({
-                    headerRight: () => <ManagerHeader navigation={navigation} />, title: "Profile"
-                })} />
+                <Tab.Screen name="ManagerDashboard" component={ManagerDashboard} options={{ title: 'Home' }} />
+                <Tab.Screen name="ManagerMyEvents" component={ManagerMyEvents} options={{ title: 'My Events' }} />
+                {/* <Tab.Screen name="ManagerChat" component={ManagerChat} options={{ title: 'Chat' }} /> */}
+                <Tab.Screen name="ManagerSettings" component={ManagerSettings} options={{ title: "Profile" }} />
             </Tab.Navigator>
         )
     };
+
+    const headerOptions = {
+        headerBackVisible: false,
+        headerTitle: () => (
+            <Image
+                source={require('../assets/images/headerLogo.png')}
+                style={{ width: 100, height: 30, resizeMode: 'contain' }}
+            />
+        ),
+    };
+
+
+    const screens: { name: keyof RootStackParamList; component: React.ComponentType<any> }[] = [
+        { name: "Onboarding", component: OnBoarding },
+        { name: "Onboarding1", component: OnBoarding1 },
+        { name: "Phone", component: Phone },
+        { name: "PhoneFinal", component: PhoneFinal },
+        { name: "ProfileUpdateScreen", component: ProfileUpdateScreen },
+        { name: "Questions", component: Questions },
+        { name: "QuestionFinal", component: QuestionFinal },
+    ];
 
 
     return (
         <SnackbarProvider>
             <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
                 <Stack.Navigator initialRouteName="Auth">
-                    <Stack.Screen name="Auth" component={Auth} options={{ headerBackVisible: false }} />
-                    <Stack.Screen name="SignUp" component={SignUp} options={{ headerBackVisible: false }} />
-                    <Stack.Screen name="Onboarding" component={OnBoarding} options={{ headerBackVisible: false }} />
-                    <Stack.Screen name="Onboarding1" component={OnBoarding1} options={{ headerBackVisible: false }} />
-                    <Stack.Screen name="Phone" component={Phone} options={{ headerBackVisible: false }} />
-                    <Stack.Screen name="PhoneFinal" component={PhoneFinal} options={{ headerBackVisible: false }} />
-                    <Stack.Screen name="ProfileUpdateScreen" component={ProfileUpdateScreen} options={{ headerBackVisible: false }} />
-                    <Stack.Screen name="Questions" component={Questions} options={{ headerBackVisible: false }} />
-                    <Stack.Screen name="QuestionFinal" component={QuestionFinal} options={{ headerBackVisible: false }} />
+                    <Stack.Screen name="Auth" component={Auth} options={{ headerShown: false }} />
+                    <Stack.Screen name="SignUp" component={SignUp} options={{ headerShown: false }} />
+                    {screens.map(({ name, component }) => (
+                        <Stack.Screen key={name} name={name} component={component} options={headerOptions} />
+                    ))}
                     <Stack.Screen
                         name="ManagerSignUp"
                         component={ManagerSignUp}
@@ -131,7 +195,11 @@ export default function App() {
                     <Stack.Screen
                         name="AddEvent"
                         component={AddEvent}
-                        options={{ title: 'Create Event' }} />
+                        initialParams={{ mode: OperationType.UPDATE }}
+                        options={({ route }) => ({
+                            title: route.params.mode === OperationType.UPDATE ? 'Update Event' : 'Create Event',
+                        })}
+                    />
                     <Stack.Screen
                         name="RenderManagerTabs"
                         component={RenderManagerTabs}
@@ -146,9 +214,23 @@ export default function App() {
                         options={{ title: 'Inbox' }}
                     />
                     <Stack.Screen
-                        name='ManagerEventScreen'
+                        name="ManagerEventScreen"
                         component={ManagerEventScreen}
-                        options={{ title: 'Event Details' }}
+                        options={({ navigation, route }) => ({
+                            title: 'Event Details',
+                            headerRight: () => {
+                                return (
+                                    <TouchableOpacity onPress={() => navigation.navigate('AddEvent', { mode: OperationType.UPDATE, eventData: route.params })}>
+                                        <Icon
+                                            name="edit-2"
+                                            type={ICONTYPE.FEATHER}
+                                            color="white"
+                                            size={20}
+                                        />
+                                    </TouchableOpacity>
+                                )
+                            },
+                        })}
                     />
                 </Stack.Navigator>
                 <StatusBar style="auto" />

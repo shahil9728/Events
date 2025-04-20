@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Keyboard, StyleSheet, View, Text, TextInput, TouchableWithoutFeedback, TouchableOpacity } from 'react-native'
+import { Keyboard, StyleSheet, View, Text, TextInput, TouchableWithoutFeedback, TouchableOpacity, Image } from 'react-native'
 import { supabase } from '../../../lib/supabase'
 import { Button, Icon } from '@rneui/themed'
 import Loader from '../../../components/Loader'
@@ -9,6 +9,7 @@ import { useSnackbar } from '@/components/SnackBar';
 import { useDispatch } from 'react-redux'
 import { setId, setOnboardingData } from '@/app/redux/Employee/onboarding/onboardingActions'
 import { Ionicons } from '@expo/vector-icons'
+import EDialog from '@/components/EDialog'
 
 export default function SignUp({ navigation }: NavigationProps) {
     const [name, setName] = useState('')
@@ -16,12 +17,14 @@ export default function SignUp({ navigation }: NavigationProps) {
     const [password, setPassword] = useState('');
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [loading, setLoading] = useState(false)
+    const [showDialog, setShowDialog] = useState(false)
+    const [dialogMsg, setDialogMsg] = useState('')
     const { theme } = useTheme();
     const dispatch = useDispatch();
     const styles = createStyles(theme);
     const { showSnackbar } = useSnackbar();
 
-    async function joinNow() {
+    const joinNow = async () => {
         setLoading(true)
         Keyboard.dismiss();
         if (email === '' || password === '' || name === '') {
@@ -40,7 +43,6 @@ export default function SignUp({ navigation }: NavigationProps) {
             }
         })
 
-        console.log("data", session?.user?.id, error1)
         if (error1) showSnackbar(error1.message, "error")
         else {
             dispatch(setOnboardingData({ email: email, name: name, id: session?.user?.id }))
@@ -59,33 +61,35 @@ export default function SignUp({ navigation }: NavigationProps) {
             else {
                 console.log('Successfully saved user data');
             }
-            navigation.navigate('Onboarding', {
-                email: email,
-                password: password,
-                name: name
-            })
+            navigation.navigate('Phone')
         }
         setLoading(false)
+    }
+
+    const handleDialog = (msg: string) => {
+        setShowDialog(true);
+        setDialogMsg(msg);
     }
 
     return (
         <View style={styles.container}>
             {loading ? <Loader /> : (
                 <>
+                    <Image source={require('../../../assets/images/logo1.png')} style={{ width: 250, height: 100, marginBottom: 5 }} />
                     <View style={styles.verticallySpaced}>
                         <Button
                             title="Sign Up with Google"
                             disabled={loading}
-                            onPress={() => navigation.navigate('EmployeeSignUp')}
+                            onPress={() => handleDialog('Google Sign-Up is not available yet')}
                             icon={<Icon name='google' type='font-awesome' size={20} color={theme.secondaryColor} />}
                             buttonStyle={styles.socialButtonStyle}
                             containerStyle={styles.socialButtonContainer}
                             titleStyle={styles.socialButtonTitle}
                         />
                         <Button
-                            title="Continue with Facebook"
+                            title="Sign Up with Facebook"
                             disabled={loading}
-                            onPress={() => navigation.navigate('ManagerSignUp')}
+                            onPress={() => handleDialog('Facebook Sign-Up is not available yet')}
                             icon={<Icon name='facebook' type='font-awesome' size={20} color={theme.secondaryColor} />}
                             buttonStyle={styles.socialButtonStyle}
                             containerStyle={styles.socialButtonContainer}
@@ -143,7 +147,7 @@ export default function SignUp({ navigation }: NavigationProps) {
                         <Button
                             title="Join Now"
                             disabled={loading}
-                            onPress={() => joinNow()}
+                            onPress={joinNow}
                             titleStyle={{
                                 textAlign: "center",
                                 flex: 1,
@@ -179,6 +183,14 @@ export default function SignUp({ navigation }: NavigationProps) {
                             TouchableComponent={TouchableWithoutFeedback}
                         />
                     </View>
+                    <EDialog
+                        visible={showDialog}
+                        onClose={() => {
+                            setShowDialog(false);
+                        }}
+                        cancelText="Ok"
+                        message={dialogMsg}
+                    />
                 </>
             )}
         </View>
@@ -190,12 +202,11 @@ const createStyles = (theme: any) => StyleSheet.create({
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        padding: 12,
         paddingHorizontal: 20,
         height: "100%",
     },
     textInputCont: {
-        padding: 15,
+        padding: 10,
         borderRadius: 50,
         backgroundColor: theme.lightGray1,
         width: "100%"

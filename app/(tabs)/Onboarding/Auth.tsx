@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from 'react'
-import { Keyboard, StyleSheet, View, Text, TextInput, TouchableWithoutFeedback, TouchableOpacity, Alert } from 'react-native'
+import { Keyboard, StyleSheet, View, Text, TextInput, TouchableWithoutFeedback, TouchableOpacity, Alert, Image } from 'react-native'
 import { supabase } from '../../../lib/supabase'
 import { Button, Icon } from '@rneui/themed'
 import { User } from '@supabase/supabase-js';
 import Loader from '../../../components/Loader'
 import { NavigationProps } from '@/app/RootLayoutHelpers';
 import { useDispatch } from 'react-redux';
-import { setEmployeeId, setManagerId } from '../../redux/Employee/accountInfo/accountInfoActions';
+import { setEmployeeId, setManagerId, updateEmployeeInfo } from '../../redux/Employee/accountInfo/accountInfoActions';
 import { useTheme } from '../../ThemeContext';
 import { useSnackbar } from '@/components/SnackBar';
 import { Ionicons } from '@expo/vector-icons';
+import EDialog from '@/components/EDialog';
+import { ICONTYPE } from '@/app/globalConstants';
 
 export default function Auth({ navigation }: NavigationProps) {
     const [email, setEmail] = useState('')
@@ -18,6 +20,8 @@ export default function Auth({ navigation }: NavigationProps) {
     const [loading, setLoading] = useState(false)
     const [user, setUser] = useState<User | null>(null)
     const [userType, setUserType] = useState(null)
+    const [showDialog, setShowDialog] = useState(false)
+    const [dialogMsg, setDialogMsg] = useState('')
     const { theme } = useTheme();
     const styles = createStyles(theme);
     const dispatch = useDispatch();
@@ -61,19 +65,16 @@ export default function Auth({ navigation }: NavigationProps) {
             return;
         }
         if (data == null) {
-            console.log("No user data found in db. User is maybe registerd");
+            console.log("No user data found. Please sign up first.");
+            // handleDialog("No user data found. Please sign up first.");
             return;
         }
         else if (data?.user_type === null) {
-            navigation.navigate('Onboarding', {
-                email: user.email ?? '',
-                password: password,
-                name: user.email ?? '',
-            });
+            // Case when user leaves without phone verification
+            navigation.navigate('Phone');
         } else if (data && !data?.phoneVerified) {
             if (user) {
-                // Case when user leaves without phone verification
-                navigation.navigate('Phone', { user_type: data?.user_type });
+                navigation.navigate('Onboarding');
             }
         } else {
             if (data) {
@@ -83,17 +84,73 @@ export default function Auth({ navigation }: NavigationProps) {
     }
 
     useEffect(() => {
-        if (user) {
-            if (userType === 'EMPLOYEE') {
-                dispatch(setEmployeeId(user.id));
-                navigation.navigate('RenderEmployeeTabs');
-            } else if (userType === 'MANAGER') {
-                dispatch(setManagerId(user.id));
-                navigation.navigate('RenderManagerTabs');
+        const handleUserType = async () => {
+            if (user) {
+                async function getEmployeeProfile() {
+                    try {
+                        setLoading(true);
+                        let { data, error, status } = await supabase
+                            .from('employees')
+                            .select(`*`)
+                            .eq('id', user?.id)
+                            .single();
+                        if (error && status !== 406) {
+                            throw error;
+                        }
+                        if (data) {
+                            dispatch(updateEmployeeInfo(data));
+                        }
+                    } catch (error) {
+                        if (error instanceof Error) {
+                            console.log("Error at Employee Settings ", error.message);
+                        }
+                    } finally {
+                        setLoading(false);
+                    }
+                }
+
+                async function getManagerProfile() {
+                    try {
+                        setLoading(true);
+                        let { data, error, status } = await supabase
+                            .from('managers')
+                            .select(`*`)
+                            .eq('id', user?.id)
+                            .single();
+                        if (error && status !== 406) {
+                            throw error;
+                        }
+                        if (data) {
+                            dispatch(updateEmployeeInfo(data));
+                        }
+                    } catch (error) {
+                        if (error instanceof Error) {
+                            console.log("Error at Manager Settings ", error.message);
+                        }
+                    } finally {
+                        setLoading(false);
+                    }
+                }
+
+                if (userType === 'EMPLOYEE') {
+                    await getEmployeeProfile();
+                    dispatch(setEmployeeId(user.id));
+                    navigation.navigate('RenderEmployeeTabs');
+                } else if (userType === 'MANAGER') {
+                    await getManagerProfile();
+                    dispatch(setManagerId(user.id));
+                    navigation.navigate('RenderManagerTabs');
+                }
             }
-        }
+        };
+
+        handleUserType();
     }, [userType, navigation, user])
 
+    const handleDialog = (msg: string) => {
+        setShowDialog(true);
+        setDialogMsg(msg);
+    }
 
     async function signInWithEmail() {
         setLoading(true)
@@ -119,12 +176,13 @@ export default function Auth({ navigation }: NavigationProps) {
         <View style={styles.container}>
             {loading ? <Loader /> : (
                 <>
+                    <Image source={require('../../../assets/images/logo1.png')} style={{ width: 250, height: 100, marginBottom: 24 }} />
                     <View style={styles.verticallySpaced}>
                         <Button
                             title="Continue with Google"
                             disabled={loading}
-                            onPress={() => navigation.navigate('EmployeeSignUp')}
-                            icon={<Icon name='google' type='font-awesome' size={20} color={theme.secondaryColor} />}
+                            onPress={() => handleDialog("Sorry this feature is not available yet. Please use the email and password to sign in.")}
+                            icon={<Icon name='google' type={ICONTYPE.FONTAWESOME} size={20} color={theme.secondaryColor} />}
                             buttonStyle={styles.socialButtonStyle}
                             containerStyle={styles.socialButtonContainer}
                             titleStyle={styles.socialButtonTitle}
@@ -132,8 +190,8 @@ export default function Auth({ navigation }: NavigationProps) {
                         <Button
                             title="Continue with Facebook"
                             disabled={loading}
-                            onPress={() => navigation.navigate('ManagerSignUp')}
-                            icon={<Icon name='facebook' type='font-awesome' size={20} color={theme.secondaryColor} />}
+                            onPress={() => setShowDialog(true)}
+                            icon={<Icon name='facebook' type={ICONTYPE.FONTAWESOME} size={20} color={theme.secondaryColor} />}
                             buttonStyle={styles.socialButtonStyle}
                             containerStyle={styles.socialButtonContainer}
                             titleStyle={styles.socialButtonTitle}
@@ -215,6 +273,14 @@ export default function Auth({ navigation }: NavigationProps) {
                             TouchableComponent={TouchableWithoutFeedback}
                         />
                     </View>
+                    <EDialog
+                        visible={showDialog}
+                        onClose={() => {
+                            setShowDialog(false);
+                        }}
+                        cancelText="Ok"
+                        message={dialogMsg}
+                    />
                 </>
             )}
         </View>
@@ -231,7 +297,7 @@ const createStyles = (theme: any) => StyleSheet.create({
         height: "100%",
     },
     textInputCont: {
-        padding: 15,
+        padding: 10,
         paddingHorizontal: 15,
         borderRadius: 50,
         backgroundColor: theme.lightGray1,

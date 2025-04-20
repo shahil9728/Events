@@ -1,11 +1,12 @@
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { event_row } from './BaseClasses';
+import { OperationValue } from './globalConstants';
 
 export type RootStackParamList = {
     Auth: undefined;
     ManagerSignUp: undefined;
-    RenderManagerTabs: undefined;
+    RenderManagerTabs: { activeTab?: string };
     RenderEmployeeTabs: undefined;
     Employee: undefined;
     EmployeeSignUp: undefined;
@@ -13,30 +14,30 @@ export type RootStackParamList = {
     EmployeeProfile: undefined;
     EmployeeHeader: undefined;
     ManagerProfile: undefined;
-    AddEvent: undefined;
-    EmployeeEventScreen: event_row;
-    Onboarding: { email: string, password: string, name: string };
-    Onboarding1: { email: string, password: string, name: string, option: string };
-    ManagerEventScreen: { title: string; startDate: string; endDate: string; location: string; eventCategory: string; eventImage: string; eventDescription: string; eventSalary: string; managerId: string; id: string };
+    EmployeeEventScreen: { mode: OperationValue; eventData?: event_row };
+    Onboarding: undefined;
+    Onboarding1: undefined;
+    ManagerEventScreen: event_row;
     EmployeeInbox: undefined;
     SignUp: undefined;
     ManagerDashboard: undefined;
-    Phone: { user_type: string };
+    Phone: undefined;
     PhoneFinal: undefined;
     ProfileUpdateScreen: { name1: string };
     Questions: undefined;
     QuestionFinal: undefined;
+    AddEvent: { mode: OperationValue; eventData?: event_row };
 };
 
 export type ManagerListBase = {
     ManagerDashboard: undefined;
     ManagerProfile: undefined;
-    RenderManagerTabs: undefined;
+    RenderManagerTabs: { activeTab?: string };
     ManagerHeader: undefined;
     ManagerMyEvents: undefined;
     ManagerChat: undefined;
     ManagerSettings: undefined;
-    AddEvent: undefined;
+    AddEvent: { mode?: OperationValue; eventData?: event_row };
 }
 export type EmployeeListBase = {
     EmployeeSettings: undefined;
@@ -54,9 +55,8 @@ export type OnBoardingProps = NativeStackScreenProps<RootStackParamList, 'Onboar
 export type OnBoarding1Props = NativeStackScreenProps<RootStackParamList, 'Onboarding1'>;
 export type ProfileUpdateScreenRouteProp = NativeStackScreenProps<RootStackParamList, 'ProfileUpdateScreen'>;
 export type PhoneProps = NativeStackScreenProps<RootStackParamList, 'Phone'>;
+export type AddEventProps = NativeStackScreenProps<RootStackParamList, 'AddEvent'>;
 
-export type NavigationProps =
-    | NativeStackScreenProps<RootStackParamList, keyof RootStackParamList>
 
 type TabNavigationProps = BottomTabNavigationProp<ManagerListBase, keyof ManagerListBase>;
 
@@ -69,4 +69,7 @@ export type EmployeeHeaderScreenProps = {
 };
 
 
+
+export type NavigationProps =
+    | NativeStackScreenProps<RootStackParamList, keyof RootStackParamList>
 

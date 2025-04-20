@@ -7,6 +7,7 @@ export type employee_to_manager_row = {
     event_id: string;
     event_title: string;
     event_metadata: {
+        eventCategory: string;
         description: string;
         location: string;
         startDate: string;
@@ -16,16 +17,25 @@ export type employee_to_manager_row = {
     };
 }
 
+export type Freelancer = {
+    role: string;
+    number: string;
+    price: string;
+};
+
+
 export type event_row = {
     id: string;
     manager_id: string;
     startDate: string;
     endDate: string;
     title: string;
+    role_id: string;
     metadata: {
+        eventCategory: string;
         description: string;
         location: string;
         image?: string | null;
-        freelancer: [{ role: string; number: number; price: number }];
+        freelancer: Freelancer[];
     }
 }

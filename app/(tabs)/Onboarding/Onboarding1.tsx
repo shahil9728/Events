@@ -1,85 +1,76 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
     View,
     Text,
     StyleSheet,
-    TextInput,
-    TouchableOpacity,
     ScrollView,
 } from 'react-native';
-import { Button, Icon } from '@rneui/themed';
+import { Button } from '@rneui/themed';
 import { useTheme } from '../../ThemeContext';
-import { Picker } from '@react-native-picker/picker';
-import { useSnackbar } from '@/components/SnackBar';
 import { OnBoarding1Props } from '@/app/RootLayoutHelpers';
+import IconwithContainer from '@/components/IconwithContainer';
+import { OperationType } from '@/app/globalConstants';
+import useExitAppOnBackPress from '@/hooks/useExitAppOnBackPress';
 
-export default function OnBoarding1({ route, navigation }: OnBoarding1Props) {
-    const { email, password, name, option } = route.params;
-    const [selectedOption, setSelectedOption] = useState<string | null>(option);
-    const [contactNumber, setContactNumber] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [role, setRole] = useState('');
+export default function OnBoarding1({ navigation }: OnBoarding1Props) {
     const { theme } = useTheme();
     const styles = createStyles(theme);
-    const { showSnackbar } = useSnackbar();
+    useExitAppOnBackPress();
 
-    const roles = ['Bartender', 'Shadow', 'Logistics', 'Helpdesk'];
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
-            {selectedOption && (selectedOption === 'work' ? (
-                <>
-                    <Text style={styles.subheading}>Tell us more about yourself</Text>
-                    <View style={styles.formContainer}>
-                        <View style={styles.textInputCont}>
-                            <TextInput
-                                style={styles.textInput}
-                                placeholder="Enter Number"
-                                placeholderTextColor={theme.lightGray2}
-                                onChangeText={(text) => setContactNumber(text)}
-                                value={contactNumber}
-                                autoCapitalize='none'
-                            />
-                        </View>
-                        <View style={styles.pickerContainer}>
-                            <Picker
-                                selectedValue={role}
-                                onValueChange={(itemValue) => setRole(itemValue)}
-                                style={styles.picker}
-                            >
-                                <Picker.Item label="Select Role" value="" />
-                                {roles.map((r) => (
-                                    <Picker.Item key={r} label={r} value={r} />
-                                ))}
-                            </Picker>
-                        </View>
-                        <Text style={styles.selectedSkillsBanner}>{role ? `${role} selected` : 'No role selected'}</Text>
-                        <Button
-                            title="Next"
-                            buttonStyle={styles.primaryButton}
-                            onPress={() =>
-                                contactNumber && role
-                                    ? showSnackbar('Form Submitted', 'success')
-                                    : showSnackbar('Please complete the form', 'error')
-                            }
+            <View style={styles.formContainer}>
+                <Text style={styles.heading}>Let's Get Started</Text>
+                <Button
+                    title="Create Event"
+                    titleStyle={{
+                        color: theme.secondaryColor,
+                        textAlign: 'center',
+                        flex: 1,
+                    }}
+                    buttonStyle={styles.primaryButton}
+                    containerStyle={{
+                        borderRadius: 50,
+                        backgroundColor: 'transparent',
+                        width: '100%',
+                        borderColor: theme.secondaryColor,
+                        borderWidth: 1,
+                    }}
+                    onPress={() => { navigation.navigate('AddEvent', { mode: OperationType.UPDATE, eventData: undefined }) }}
+                    icon={
+                        <IconwithContainer
+                            iconName="chevron-forward-outline"
+                            onPress={() => { navigation.navigate('AddEvent', { mode: OperationType.UPDATE, eventData: undefined }) }}
                         />
-                    </View>
-                </>
-            ) : (
-                <View style={styles.formContainer}>
-                    <Text style={styles.heading}>Hire Options</Text>
-                    <Button
-                        title="Create Event"
-                        buttonStyle={styles.secondaryButton}
-                    // onPress={() => showSnackbar('Create Event Clicked', 'info')}
-                    />
-                    <Button
-                        title="Browse Profiles"
-                        buttonStyle={styles.secondaryButton}
-                    // onPress={() => showSnackbar('Browse Profiles Clicked', 'info')}
-                    />
-                </View>
-            ))}
+                    }
+                    iconPosition='right'
+                />
+                <Button
+                    title="Browse Profiles"
+                    titleStyle={{
+                        color: theme.secondaryColor,
+                        textAlign: 'center',
+                        flex: 1,
+                    }}
+                    buttonStyle={styles.primaryButton}
+                    containerStyle={{
+                        borderRadius: 50,
+                        backgroundColor: 'transparent',
+                        width: '100%',
+                        borderColor: theme.secondaryColor,
+                        borderWidth: 1,
+                    }}
+                    onPress={() => { navigation.navigate('RenderManagerTabs', { activeTab: 'ManagerDashboard' }) }}
+                    icon={
+                        <IconwithContainer
+                            iconName="chevron-forward-outline"
+                            onPress={() => { navigation.navigate('RenderManagerTabs', { activeTab: 'ManagerDashboard' }) }}
+                        />
+                    }
+                    iconPosition='right'
+                />
+            </View>
         </ScrollView>
     );
 }
@@ -99,9 +90,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     formContainer: {
         display: 'flex',
         justifyContent: 'center',
-        alignItems: 'center',
         gap: 15,
-        marginTop: 20,
     },
     subheading: {
         fontSize: 16,
@@ -109,10 +98,9 @@ const createStyles = (theme: any) => StyleSheet.create({
         color: theme.secondaryColor,
     },
     heading: {
-        fontSize: 22,
+        fontSize: 25,
         fontWeight: 'bold',
         color: theme.primaryColor,
-        textAlign: 'center',
         marginBottom: 16,
     },
     textInputCont: {
@@ -129,32 +117,8 @@ const createStyles = (theme: any) => StyleSheet.create({
         fontSize: 16,
         color: theme.secondaryColor,
     },
-    pickerContainer: {
-        padding: 5,
-        borderRadius: 50,
-        backgroundColor: theme.lightGray1,
-        width: "100%"
-    },
-    picker: {
-        color: theme.secondaryColor,
-    },
-    selectedSkillsBanner: {
-        color: theme.primaryColor,
-        textAlign: 'center',
-        marginVertical: 10,
-    },
     primaryButton: {
         backgroundColor: "transparent",
-        padding: 20,
-    },
-    primaryButtonTitle: {
-        textAlign: 'center',
-        flex: 1,
-    },
-    secondaryButton: {
-        backgroundColor: theme.secondaryColor,
-        padding: 15,
-        marginTop: 10,
-        borderRadius: 10,
+        padding: 10,
     },
 });

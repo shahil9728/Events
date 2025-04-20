@@ -3,6 +3,7 @@ import { Icon } from '@rneui/themed';
 import React from 'react'
 import { StyleSheet, View, Text, ActivityIndicator } from 'react-native'
 import IconwithContainer from './IconwithContainer';
+import { ICONTYPE } from '@/app/globalConstants';
 
 interface GenericFormProps {
     children: React.ReactNode;
@@ -24,7 +25,7 @@ const GenericForm: React.FC<GenericFormProps> = ({ children, footerMsg, handleNe
                         key={index}
                         name={icon.iconName}
                         size={25}
-                        type='material'
+                        type={ICONTYPE.MATERIAL}
                         color={icon.active ? theme.primaryColor : theme.lightGray2}
                     />
                 ))}
@@ -38,13 +39,16 @@ const GenericForm: React.FC<GenericFormProps> = ({ children, footerMsg, handleNe
                 <Text style={styles.footermsg}>
                     {footerMsg}
                 </Text>
-                {isLoading ? (<IconwithContainer>
-                    <ActivityIndicator size="small" color={theme.primaryColor} />
-                </IconwithContainer>)
-                    : (<IconwithContainer
+                {isLoading ? (
+                    <IconwithContainer>
+                        <ActivityIndicator size="small" color={theme.primaryColor} />
+                    </IconwithContainer>
+                ) : (
+                    <IconwithContainer
                         iconName='chevron-forward-outline'
                         onPress={handleNext}
-                    />)}
+                    />
+                )}
             </View>
         </View>
     )

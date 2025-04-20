@@ -2,10 +2,8 @@ import { useTheme } from '@/app/ThemeContext'
 import React, { useState } from 'react'
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, FlatList } from 'react-native'
 import { Icon } from '@rneui/themed'
+import { languagesList } from '../onboardingConstants'
 
-const languagesList = [
-    "English", "Spanish", "French", "German", "Chinese", "Japanese", "Hindi", "Arabic", "Portuguese", "Russian", "Punjabi", "Haryanvi", "Bengali", "Telugu", "Marathi", "Tamil", "Urdu", "Gujarati", "Malayalam", "Kannada", "Odia", "Punjabi", "Assamese", "Maithili", "Santali", "Konkani", "Kashmiri", "Sindhi", "Dogri", "Manipuri"
-];
 const Question2 = ({ answer: selectedLanguages, setAnswer }: { answer: string[], setAnswer: (value: string[]) => void }) => {
     const { theme } = useTheme();
     const styles = createStyles(theme);
@@ -45,7 +43,7 @@ const Question2 = ({ answer: selectedLanguages, setAnswer }: { answer: string[],
                     ))}
                     <TextInput
                         style={styles.textInput}
-                        placeholder="Type a language"
+                        placeholder={selectedLanguages.length ? "" : "Type to search languages"}
                         placeholderTextColor={theme.lightGray2}
                         value={inputValue}
                         onChangeText={handleInputChange}
@@ -83,7 +81,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     textInputCont: {
         marginTop: 20,
         padding: 15,
-        borderRadius: 50,
+        borderRadius: 10,
         backgroundColor: theme.lightGray1,
         width: "100%",
     },

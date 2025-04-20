@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 interface Theme {
     primaryColor: string;
     primaryColor1: string;
+    primaryColor2: string;
     secondaryColor: string;
     headingColor: string;
     lightGray: string;
@@ -19,8 +20,9 @@ interface ThemeContextType {
 const defaultTheme: Theme = {
     primaryColor: '#EBFF57',    // Green
     primaryColor1: '#B6BF48',   // pale green
+    primaryColor2: "#D4E64E", // green + gray
     secondaryColor: '#FFFFFF',  // White
-    lightGray: '#2C2B2B',       // Dark gray
+    lightGray: '#2C2B2B',       //202023 Dark gray
     lightGray1: '#464648',      // Gray
     lightGray2: '#787975',      // Light gray
     headingColor: "#F1F0E6",    // Offwhite

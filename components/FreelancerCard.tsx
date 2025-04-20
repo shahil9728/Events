@@ -1,117 +1,177 @@
-import { supabase } from '@/lib/supabase';
 import { Icon } from '@rneui/themed';
-import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import React, { useRef, useState, useMemo } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Pressable } from 'react-native';
 import { useSnackbar } from './SnackBar';
 import { useTheme } from '@/app/ThemeContext';
+import { useSelector } from 'react-redux';
+import EDialog from './EDialog';
+import { formatRoles, getFriendlydate, getLabelFromList, getRandomProfileImage } from '@/app/(tabs)/utils';
+import { employeeDetails, EVENT_CATEGORIES, HospitalityRolesObject } from '@/app/(tabs)/employeeConstants';
+import AnimatedPressable from './AnimatedPressable';
+import ChipsWithText from './ChipsWithText';
+import ProfileModal from './ProfileModal';
+import EmployeeProfileCard from './EmployeeProfileCard';
 
-const FreelancerCard = ({ item, alternate, onSubmit }: { item: { id: string, name: string, role: string, salary: number, resume_url: string }; alternate: boolean; onSubmit: Function }) => {
+type CardProps = {
+    item: any;
+    alternate?: boolean;
+    cardType: 'freelancer' | 'event';
+    onSubmit?: Function;
+    onEventPress?: Function;
+    isLoading?: boolean;
+    requestStatus?: string;
+};
+
+
+const FreelancerCard = ({
+    item,
+    alternate = false,
+    cardType,
+    onSubmit,
+    isLoading,
+    onEventPress,
+    requestStatus
+}: CardProps) => {
+    const { theme } = useTheme();
+    const styles = useStyles(theme);
     const { showSnackbar } = useSnackbar();
     const [loading, setLoading] = useState(false);
-    const { theme } = useTheme();
+    const [showWarning, setShowWarning] = useState(false);
+    const manager_id = useSelector((state: any) => state.accountInfo.manager_id);
+    const profileImage = useMemo(() => getRandomProfileImage(), []);
 
-    async function sentHireReq(employeeId: string) {
+    async function sendHireRequest() {
         setLoading(true);
         try {
-            Alert.alert('Hire Request', 'Are you sure you want to send a hire request to this employee?', [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'OK', onPress: async () => {
-                        const managerId = (await supabase.auth.getUser()).data.user?.id;
-                        onSubmit(managerId, employeeId);
-                    }
-                },
-            ]);
-        } catch (emperror) {
-            console.log(emperror);
-            if (emperror instanceof Error) {
-                Alert.alert(String(emperror));
+            if (onSubmit) {
+                await onSubmit(manager_id, item.id);
+            } else {
+                console.warn('onSubmit is not defined.');
+            }
+        } catch (error) {
+            console.log(error);
+            if (error instanceof Error) {
+                showSnackbar(String(error), 'error');
             } else {
                 showSnackbar('An unknown error occurred.', 'error');
             }
-        }
-        finally {
+        } finally {
             setLoading(false);
         }
     }
-    return (
-        <View style={[styles.card, alternate && { backgroundColor: theme.lightGray }]}>
-            <View style={styles.profileSection}>
-                <Image
-                    source={{ uri: 'https://via.placeholder.com/60' }}
-                    style={styles.profileImage}
+
+    const eventDetails = (location: string, date: string) => [
+        { icon: "calendar", type: "font-awesome", text: getFriendlydate(date) },
+        { icon: "tag", type: "feather", text: getLabelFromList(item.metadata?.eventCategory, EVENT_CATEGORIES) || "Wedding" },
+        { icon: "map-pin", type: "feather", text: location },
+    ];
+
+    const [isModalVisible, setModalVisible] = useState(false);
+
+    if (cardType === 'freelancer') {
+        return (
+            <>
+                <AnimatedPressable onPress={() => setModalVisible(true)} style={[styles.card, alternate && { backgroundColor: theme.lightGray }]}>
+                    <EmployeeProfileCard
+                        item={item}
+                        alternate={alternate}
+                        setShowWarning={setShowWarning}
+                        loading={loading}
+                        profileImage={profileImage}
+                    />
+                </AnimatedPressable>
+                <EDialog
+                    visible={showWarning}
+                    onClose={() => setShowWarning(false)}
+                    onConfirm={() => {
+                        setShowWarning(false);
+                        sendHireRequest();
+                    }}
+                    title="Hire Request"
+                    message={`Are you sure you want to send a hire request to ${item.name}?`}
+                    confirmText="Confirm"
+                    cancelText="Cancel"
                 />
-                <View style={styles.iconsContainer}>
-                    <TouchableOpacity style={[styles.iconButton, alternate && { backgroundColor: "#565555" }]}>
-                        <Icon name="heart" type='ionicon' size={20} color={alternate ? "#F1F0E6" : "#060605"} />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.iconButton, alternate && { backgroundColor: "#565555" }]}>
-                        <Icon name="chatbox-ellipses" type='ionicon' size={20} color={alternate ? "#F1F0E6" : "#060605"} />
-                    </TouchableOpacity>
-                </View>
-            </View>
+                <ProfileModal
+                    isVisible={isModalVisible}
+                    setVisible={setModalVisible}
+                    item={item}
+                    alternate={alternate}
+                    loading={loading}
+                    setShowWarning={setShowWarning}
+                />
+            </>
+        );
+    }
+    else {
+        const imageUrl = item.metadata?.image ? { uri: item.metadata.image } : require('../assets/images/wedding.jpg');
+        const maxPrice = item.metadata?.freelancer?.length
+            ? Math.max(...item.metadata.freelancer.map((f: any) => parseInt(f.price?.toString() || "0")))
+            : 0;
 
-            <Text style={[styles.name, alternate && { color: "#979797" }]}>{item.name}</Text>
-            <View style={styles.detailsRow}>
-                <View style={[styles.iconWithTextcont, alternate && { backgroundColor: "#343436" }]}>
-                    <TouchableOpacity style={[styles.iconWithText]}>
-                        <Icon name="star" type='font-awesome' size={15} color={alternate ? "#F1F0E6" : "#060605"} />
-                        <Text style={[styles.detailItem, alternate && { color: "#F1F0E6" }]}>4.8</Text>
-                    </TouchableOpacity>
-                </View>
-                <View style={[styles.iconWithTextcont, alternate && { backgroundColor: "#343436" }]}>
-                    <TouchableOpacity style={styles.iconWithText}>
-                        <Icon name="map-pin" type='feather' size={15} color={alternate ? "#F1F0E6" : "#060605"} />
-                        <Text style={[styles.detailItem, alternate && { color: "#F1F0E6" }]}>New York</Text>
-                    </TouchableOpacity>
-                </View>
-                <View style={[styles.iconWithTextcont, alternate && { backgroundColor: "#343436" }]}>
-                    <TouchableOpacity style={styles.iconWithText}>
-                        <Icon name="school-outline" type='ionicon' size={15} color={alternate ? "#F1F0E6" : "#060605"} />
-                        <Text style={[styles.detailItem, alternate && { color: "#F1F0E6" }]}>3+ year</Text>
-                    </TouchableOpacity>
-                </View>
-                <View style={[styles.iconWithTextcont, alternate && { backgroundColor: "#343436" }]}>
-                    <TouchableOpacity style={styles.iconWithText}>
-                        <Icon name="time-outline" type='ionicon' size={15} color={alternate ? "#F1F0E6" : "#060605"} />
-                        <Text style={[styles.detailItem, alternate && { color: "#F1F0E6" }]}>Full Time</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-
-            <View style={styles.jobRow}>
-                <View>
-                    <Text style={[styles.jobTitle, alternate && { color: "#A5A6A6" }]}>{item.role}</Text>
-                    <Text style={[styles.seniority, alternate && { color: "#F1F0E6" }]}>Senior</Text>
-                    <Text style={[styles.salary, alternate && { color: "#F1F0E6" }]}>${item.salary} <Text style={[styles.perMonth, alternate && { color: "#F1F0E6" }]}>/ month</Text>
-                    </Text>
+        return (
+            <AnimatedPressable style={[styles.card, alternate && { backgroundColor: theme.lightGray }]}
+                onPress={() => onEventPress && onEventPress(item)}>
+                <View style={styles.profileSection}>
+                    <Image
+                        source={imageUrl}
+                        style={styles.profileImage}
+                    />
+                    {/* <View style={styles.iconsContainer}>
+                        <TouchableOpacity style={[styles.iconButton, alternate && { backgroundColor: "#565555" }]}>
+                            <Icon name="heart" type='ionicon' size={20} color={alternate ? "#F1F0E6" : "#060605"} />
+                        </TouchableOpacity>
+                    </View> */}
                 </View>
 
-                <View style={styles.actionButtonRow}>
-                    <TouchableOpacity style={[styles.actionButton, alternate && { backgroundColor: "#F1F0E6" }]} onPress={() => sentHireReq(item.id)}>
-                        {loading ?
-                            <ActivityIndicator size={25} color={alternate ? "#060605" : "#F1F0E6"} />
-                            : <Text style={[styles.buttonText, alternate && { color: "#2C2B2B" }]}>Hire Now</Text>
-                        }
-                    </TouchableOpacity>
+                <Text style={[styles.name, alternate && { color: "#979797" }]}>{item.title}</Text>
+                <View style={styles.detailsRow}>
+                    {eventDetails(item.metadata?.location || "Unknown", item.startDate).map(({ icon, type, text }, index) => (
+                        <View
+                            key={index}
+                            style={[styles.iconWithTextcont, alternate && { backgroundColor: "#343436" }]}
+                        >
+                            <TouchableOpacity style={styles.iconWithText}>
+                                <Icon name={icon} type={type} size={15} color={alternate ? "#F1F0E6" : "#060605"} />
+                                <Text style={[styles.detailItem, alternate && { color: "#F1F0E6" }]}>{text}</Text>
+                            </TouchableOpacity>
+                        </View>
+                    ))}
                 </View>
-            </View>
-        </View>
-    );
+
+                <View style={[styles.jobRow, { marginTop: 15 }]}>
+                    <View>
+                        <Text style={[styles.jobTitle, alternate && { color: "#A5A6A6" }]}>
+                            {item.metadata?.description ? item.metadata.description.substring(0, 20) + (item.metadata.description.length > 50 ? '...' : '') : 'No description'}
+                        </Text>
+                        <Text style={[styles.salary, alternate && { color: "#F1F0E6" }]}>{maxPrice}Rs
+                            <Text style={[styles.perMonth, alternate && { color: "#F1F0E6" }]}>/ event</Text>
+                        </Text>
+                    </View>
+
+                    <View style={styles.actionButtonRow}>
+                        <TouchableOpacity
+                            style={[styles.actionButton, alternate && { backgroundColor: "#F1F0E6" }]}
+                            onPress={() => onSubmit && onSubmit(item)} disabled={isLoading || requestStatus == "sent"}
+                        >
+                            {isLoading ? <ActivityIndicator size={25} color={"#F1F0E6"} /> : requestStatus == "pending" ? <Text style={styles.buttonText}>Send Request</Text> :
+                                <Text style={[styles.buttonText, alternate && { color: "#2C2B2B" }]}>
+                                    Request Sent
+                                </Text>}
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </AnimatedPressable>
+        );
+    }
 };
 
-const styles = StyleSheet.create({
+const useStyles = (theme: any) => StyleSheet.create({
     card: {
-        backgroundColor: '#EBFF57',
+        backgroundColor: theme.primaryColor,
         borderRadius: 20,
         padding: 20,
-        width: '95%',
-        alignSelf: 'center',
         marginTop: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 5,
     },
     profileSection: {
         flexDirection: 'row',
@@ -122,18 +182,6 @@ const styles = StyleSheet.create({
         width: 60,
         height: 60,
         borderRadius: 30,
-    },
-    iconsContainer: {
-        flexDirection: 'row',
-    },
-    iconButton: {
-        backgroundColor: '#D4E64E',
-        borderRadius: 40,
-        padding: 15,
-        marginHorizontal: 3,
-    },
-    iconText: {
-        fontSize: 16,
     },
     iconWithText: {
         flexDirection: 'row',
@@ -160,6 +208,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         marginTop: 10,
         gap: 8,
+        marginBottom: 10,
         flexWrap: 'wrap',
     },
     detailItem: {
@@ -172,22 +221,11 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
     },
-    jobType: {
-        fontSize: 14,
-        color: '#202023',
-        marginTop: 5,
-    },
     jobTitle: {
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: '700',
         color: '#76802C',
         marginTop: 15,
-    },
-    seniority: {
-        fontSize: 30,
-        fontWeight: 'bold',
-        color: '#202023',
-        marginTop: 5,
     },
     salary: {
         fontSize: 22,
@@ -211,7 +249,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     buttonText: {
-        color: '#E4F554', 
+        color: '#E4F554',
         fontSize: 16,
         fontWeight: 'bold',
     },
