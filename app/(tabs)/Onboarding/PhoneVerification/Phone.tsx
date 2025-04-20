@@ -4,6 +4,7 @@ import { View } from 'react-native'
 import Phone1 from './Phone1';
 import Phone2 from './Phone2';
 import { useSnackbar } from '@/components/SnackBar';
+import axios from 'axios';
 import { NavigationProps } from '@/app/RootLayoutHelpers';
 import { supabase } from '@/lib/supabase';
 import { useDispatch, useSelector } from 'react-redux';
@@ -28,21 +29,21 @@ const Phone = ({ navigation }: NavigationProps) => {
             setGeneratedOtp(otp);
             dispatch(setNumber(contactNumber));
             console.log(otp);
-            // const response = await axios.post(
-            //     "https://n4u6j24rib.execute-api.ap-south-1.amazonaws.com/TwillService/sendmessage",
-            //     { "phoneNumber": "+91" + contactNumber, "otp": otp },
-            //     {
-            //         headers: {
-            //             "Content-Type": "application/json",
-            //         }
-            //     }
-            // );
-            // if (!response.data.success) {
-            //     showSnackbar("Error sending OTP. Please try again.", 'error');
-            //     return;
-            // } else {
-            //     showSnackbar("OTP sent successfully.", 'success');
-            // }
+            const response = await axios.post(
+                "https://n4u6j24rib.execute-api.ap-south-1.amazonaws.com/TwillService/sendmessage",
+                { "phoneNumber": "+91" + contactNumber, "otp": otp },
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                    }
+                }
+            );
+            if (!response.data.success) {
+                showSnackbar("Error sending OTP. Please try again.", 'error');
+                return;
+            } else {
+                showSnackbar("OTP sent successfully.", 'success');
+            }
             setCurrentScreen(2);
         } catch (err) {
             console.log("Error in Phone ", err);

@@ -154,7 +154,7 @@ const FreelancerCard = ({
                             style={[styles.actionButton, alternate && { backgroundColor: "#F1F0E6" }]}
                             onPress={() => onSubmit && onSubmit(item)} disabled={isLoading || requestStatus == "sent"}
                         >
-                            {isLoading ? <ActivityIndicator size={25} color={"#F1F0E6"} /> : requestStatus == "pending" ? <Text style={styles.buttonText}>Send Request</Text> :
+                            {isLoading ? <ActivityIndicator size={25} color={"#F1F0E6"} /> : requestStatus == "pending" ? <Text style={[styles.buttonText,alternate && { color: "#2C2B2B" }]}>Send Request</Text> :
                                 <Text style={[styles.buttonText, alternate && { color: "#2C2B2B" }]}>
                                     Request Sent
                                 </Text>}
