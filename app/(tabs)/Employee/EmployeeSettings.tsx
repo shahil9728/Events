@@ -1,89 +1,64 @@
 import React from 'react';
-import { View, Alert, StyleSheet, BackHandler, Image, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Icon } from '@rneui/themed';
 import { supabase } from '../../../lib/supabase';
 import { Text } from '@rneui/themed'
 import { NavigationProps } from '../../RootLayoutHelpers';
+import { useSelector } from 'react-redux';
+import ProfileImage from '@/components/ProfileImage';
+import { useTheme } from '@/app/ThemeContext';
+import CustomMenu from '@/components/CustomMenu';
 
 const EmployeeSettings = ({ navigation }: NavigationProps) => {
+    const accountInfo = useSelector((store: { accountInfo: any }) => store.accountInfo);
+
+    const { theme } = useTheme();
+    const styles = useStyles(theme);
+
+    const menuItems = [
+        {
+            label: 'Your Profile',
+            onPress: () => navigation.navigate('EmployeeProfile'),
+        },
+    ];
+
+
+
     return (
         <View style={styles.container}>
-            <View style={styles.imageContainer}>
-                <Image
-                    source={{
-                        uri: 'https://via.placeholder.com/150',
-                    }}
-                    style={styles.profileImage}
-                />
-            </View>
-            <View style={styles.menuContainer}>
-                <TouchableOpacity
-                    style={styles.menuItem}
-                    onPress={() => navigation.navigate('EmployeeProfile')}
-                >
-                    <Text style={styles.menuText}>Your Profile</Text>
-                    <Icon name="chevron-right" size={20} color="#ffffff" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.menuItem}>
-                    <Text style={styles.menuText}>Settings</Text>
-                    <Icon name="chevron-right" size={20} color="#ffffff" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[styles.menuItem, {
-                        backgroundColor: '#EBFF57', justifyContent: "center"
-                    }]}
-                    onPress={() => supabase.auth.signOut()}
-                >
-                    <Text style={[styles.menuText, { color: "#202023", fontWeight: 500 }]}>Sign Out</Text>
-                </TouchableOpacity>
-            </View>
+            <ProfileImage profileUrl={accountInfo.profile_url} name={accountInfo.name} editable={false} conatinerStyle={{ marginBottom: 20 }} />
+            <CustomMenu menuItems={menuItems} />
+            <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => supabase.auth.signOut()}
+            >
+                <Text style={styles.menuText}>Sign Out</Text>
+            </TouchableOpacity>
         </View>
     );
 }
 
-const styles = StyleSheet.create({
+const useStyles = (theme: any) => StyleSheet.create({
     container: {
         flex: 1,
         padding: 16,
         alignItems: 'center',
-        backgroundColor: '#060605',
-    },
-    imageContainer: {
-        marginTop: 20,
-        marginBottom: 30,
-    },
-    profileImage: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-    },
-    menuContainer: {
-        width: '100%',
-        height: "100%",
-        marginTop: 10,
     },
     menuItem: {
+        width: "100%",
         paddingVertical: 15,
         paddingHorizontal: 20,
         borderRadius: 8,
-        borderWidth: 1,
-        backgroundColor: '#343436',
-        marginBottom: 10,
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+        backgroundColor: '#EBFF57',
+        justifyContent: "center",
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
     },
     menuText: {
         fontSize: 16,
-        fontWeight: '500',
-        color: '#ffffff',
-    }
+        color: "#202023",
+        fontWeight: 500
+    },
+
 });
 
 export default EmployeeSettings;

@@ -1,31 +1,46 @@
+import { useTheme } from '@/app/ThemeContext';
 import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 
 interface DropdownComponentProps {
     data: { label: string; value: string }[];
     label: string;
+    value: string;
+    onClick: (value: string) => void;
+    maxHeight?: number;
+    style?: any;
 }
 
-const DropdownComponent: React.FC<DropdownComponentProps> = ({ data, label }) => {
-    const [value, setValue] = useState<string>('');
+const DropdownComponent: React.FC<DropdownComponentProps> = ({ data, label, value, onClick, maxHeight, style }) => {
+    const theme = useTheme();
+    const styles = useStyles(theme);
     return (
         <View>
             <Dropdown
+                activeColor='transparent'
                 containerStyle={styles.dropdownContainer}
-                style={styles.dropdown}
+                style={[styles.dropdown, style]}
                 placeholderStyle={styles.placeholderStyle}
                 selectedTextStyle={styles.selectedTextStyle}
                 itemTextStyle={styles.itemTextStyle}
                 data={data}
-                maxHeight={300}
+                maxHeight={maxHeight || 300}
                 labelField="label"
                 valueField="value"
                 placeholder={label}
                 value={value}
                 onChange={item => {
-                    setValue(item.value);
+                    onClick(item.value);
                 }}
+                renderItem={(item) => (
+                    <View style={[
+                        styles.itemContainer,
+                        value === item.value && styles.selectedItem
+                    ]}>
+                        <Text style={styles.itemTextStyle}>{item.label}</Text>
+                    </View>
+                )}
             />
         </View>
     );
@@ -33,7 +48,7 @@ const DropdownComponent: React.FC<DropdownComponentProps> = ({ data, label }) =>
 
 export default DropdownComponent;
 
-const styles = StyleSheet.create({
+const useStyles = (theme: any) => StyleSheet.create({
     dropdown: {
         backgroundColor: '#202023',
         height: 50,
@@ -58,5 +73,12 @@ const styles = StyleSheet.create({
     },
     itemTextStyle: {
         color: '#ffffff',
+    },
+    itemContainer: {
+        padding: 10,
+    },
+    selectedItem: {
+        backgroundColor: '#787975',
     }
+
 });

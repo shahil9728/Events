@@ -3,17 +3,15 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert,
 import { Icon } from '@rneui/themed';
 import { useSnackbar } from '@/components/SnackBar';
 import { supabase } from '@/lib/supabase';
-// import DateTimePicker from '@react-native-community/datetimepicker';
 import { Calendar } from 'react-native-calendars';
 import Loader from '@/components/Loader';
-import { ManagerHeaderScreenProps } from '@/app/RootLayoutHelpers';
+import { AddEventProps, ManagerHeaderScreenProps } from '@/app/RootLayoutHelpers';
 import { useSelector } from 'react-redux';
-
-type Freelancer = {
-    role: string;
-    number: string;
-    price: string;
-};
+import DropdownComponent from '@/components/DropdownComponent';
+import { EVENT_CATEGORIES, HospitalityRoles, HospitalityRolesObject } from '../employeeConstants';
+import { useTheme } from '@/app/ThemeContext';
+import { OperationType } from '@/app/globalConstants';
+import { Freelancer } from '@/app/BaseClasses';
 
 interface DayProps {
     dateString: string;
@@ -28,7 +26,9 @@ interface MarkedDates {
     };
 }
 
-const AddEvent = ({ navigation }: ManagerHeaderScreenProps) => {
+const AddEvent = ({ navigation, route }: AddEventProps) => {
+    const { theme } = useTheme();
+    const styles = useStyles(theme);
     const [eventName, setEventName] = useState('');
     const [selectedDates, setSelectedDates] = useState({
         startDate: '',
@@ -36,15 +36,72 @@ const AddEvent = ({ navigation }: ManagerHeaderScreenProps) => {
         markedDates: {},
     });
     const [eventLocation, setEventLocation] = useState('');
+    const [eventCategory, setEventCategory] = useState('');
     const [eventDescription, setEventDescription] = useState('');
-    const [selectedFreelancers, setSelectedFreelancers] = useState<Freelancer[]>(
-        []
-    );
+    const [selectedFreelancers, setSelectedFreelancers] = useState<Freelancer[]>([]);
     const [show, setShow] = useState(false);
     const [freelancers, setFreelancers] = useState<Freelancer[]>([
         { role: '', number: '', price: '' },
     ]);
+
     const [isLoading, setIsLoading] = useState(false);
+    const { mode, eventData } = route.params || { mode: OperationType.UPDATE };
+
+    useEffect(() => {
+        if (mode === OperationType.UPDATE && eventData?.id) {
+            if (eventData) {
+                // Populate state directly from eventData
+                setEventName(eventData.title);
+                setSelectedDates({
+                    startDate: eventData.startDate,
+                    endDate: eventData.endDate,
+                    markedDates: getDateRange(eventData.startDate, eventData.endDate),
+                });
+                setEventLocation(eventData.metadata.location);
+                setEventCategory(eventData.metadata.eventCategory);
+                setEventDescription(eventData.metadata.description);
+                setSelectedFreelancers(eventData.metadata.freelancer);
+            }
+            // else if (eventData?.id) {
+            //     // fallback fetch if full data not passed
+            //     fetchEventDetails(eventData.id);
+            // }
+        }
+    }, [mode, eventData?.id]);
+
+    const fetchEventDetails = async (id: string) => {
+        setIsLoading(true);
+        try {
+            const { data, error } = await supabase
+                .from('events')
+                .select('*')
+                .eq('id', id)
+                .single();
+
+            if (error) {
+                throw new Error(error.message);
+            }
+
+            if (data) {
+                setEventName(data.title);
+                setSelectedDates({
+                    startDate: data.startDate,
+                    endDate: data.endDate,
+                    markedDates: getDateRange(data.startDate, data.endDate),
+                });
+                setEventLocation(data.metadata.location);
+                setEventCategory(data.metadata.eventCategory);
+                setEventDescription(data.metadata.description);
+                setSelectedFreelancers(data.metadata.freelancer);
+            }
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to fetch event details';
+            showSnackbar(errorMessage, 'error');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const showDatePicker = () => setShow(true);
 
     const onDayPress = (day: DayProps) => {
@@ -55,7 +112,7 @@ const AddEvent = ({ navigation }: ManagerHeaderScreenProps) => {
                 ...selectedDates,
                 startDate: dateString,
                 markedDates: {
-                    [dateString]: { startingDay: true, color: 'blue', textColor: 'white' },
+                    [dateString]: { startingDay: true, color: theme.primaryColor, textColor: 'black' },
                 },
             });
         } else if (selectedDates.startDate && selectedDates.endDate) {
@@ -64,7 +121,7 @@ const AddEvent = ({ navigation }: ManagerHeaderScreenProps) => {
                 startDate: dateString,
                 endDate: '',
                 markedDates: {
-                    [dateString]: { startingDay: true, color: 'blue', textColor: 'white' },
+                    [dateString]: { startingDay: true, color: theme.primaryColor, textColor: 'black' },
                 },
             });
         } else {
@@ -76,6 +133,7 @@ const AddEvent = ({ navigation }: ManagerHeaderScreenProps) => {
                 markedDates: range,
             });
         }
+        console.log(selectedDates);
     };
 
     // Helper function to mark the range between two dates
@@ -87,8 +145,8 @@ const AddEvent = ({ navigation }: ManagerHeaderScreenProps) => {
         while (currentDate <= endDate) {
             const dateStr = currentDate.toISOString().split('T')[0];
             range[dateStr] = {
-                color: 'blue',
-                textColor: 'white',
+                color: theme.primaryColor,
+                textColor: 'black',
                 startingDay: dateStr === start,
                 endingDay: dateStr === end,
             };
@@ -121,6 +179,11 @@ const AddEvent = ({ navigation }: ManagerHeaderScreenProps) => {
             return;
         }
 
+        if (isNaN(Number(freelancer.price)) || Number(freelancer.price) <= 0) {
+            showSnackbar('Please enter a valid salary!', 'error');
+            return;
+        }
+
         setSelectedFreelancers([...selectedFreelancers, freelancer]);
         const updatedFreelancers = [...freelancers];
         updatedFreelancers.splice(index, 1);
@@ -145,6 +208,7 @@ const AddEvent = ({ navigation }: ManagerHeaderScreenProps) => {
             showSnackbar('Please fill all fields!', 'error');
             return;
         }
+
         setIsLoading(true);
 
         const event = {
@@ -156,29 +220,36 @@ const AddEvent = ({ navigation }: ManagerHeaderScreenProps) => {
                 location: eventLocation,
                 description: eventDescription,
                 freelancer: selectedFreelancers,
+                eventCategory: eventCategory,
             },
             created_at: new Date(),
         };
 
-        let { data, error } = await supabase
-            .from('events')
-            .upsert(event)
-        if (error) {
-            showSnackbar(error.message, 'error');
-            return;
-        }
-        setIsLoading(false);
-        showSnackbar('Event Created Successfully!', 'success');
-        navigation.navigate('ManagerMyEvents');
-    };
+        try {
+            const { error } = mode === OperationType.UPDATE
+                ? await supabase.from('events').update(event).eq('id', eventData?.id)
+                : await supabase.from('events').insert(event);
 
+            if (error) {
+                throw new Error(error.message);
+            }
+
+            showSnackbar(`Event ${mode === OperationType.UPDATE ? 'Updated' : 'Created'} Successfully!`, 'success');
+            navigation.navigate('RenderManagerTabs', { activeTab: 'ManagerMyEvents' });
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Something went wrong!';
+            showSnackbar(errorMessage, 'error');
+        } finally {
+            setIsLoading(false);
+        }
+    };
     return (
         <View>
             {isLoading ? <Loader /> : <ScrollView
                 contentContainerStyle={styles.mainContainer}
                 keyboardShouldPersistTaps="handled"
             >
-                <Text style={styles.heading}>Event Details</Text>
+                <Text style={styles.heading}>{mode === OperationType.UPDATE ? 'Update Event' : 'Create Event'}</Text>
                 <TextInput
                     style={styles.input}
                     placeholder="Event Name"
@@ -195,13 +266,21 @@ const AddEvent = ({ navigation }: ManagerHeaderScreenProps) => {
                                 minDate={(new Date()).toString()}
                                 onDayPress={onDayPress}
                                 theme={{
-                                    selectedDayBackgroundColor: 'blue',
-                                    selectedDayTextColor: 'white',
-                                    todayTextColor: 'red',
-                                    arrowColor: 'blue',
+                                    backgroundColor: theme.lightGray,
+                                    calendarBackground: theme.lightGray,
+                                    selectedDayBackgroundColor: theme.primaryColor,
+                                    selectedDayTextColor: theme.blackColor,
+                                    todayTextColor: theme.primaryColor,
+                                    dayTextColor: theme.secondaryColor,
+                                    textDisabledColor: theme.lightGray2,
+                                    arrowColor: theme.primaryColor,
+                                    monthTextColor: theme.headingColor,
+                                    indicatorColor: theme.primaryColor,
+                                    textSectionTitleColor: theme.primaryColor2,
+                                    selectedDotColor: theme.blackColor,
                                 }}
                             />
-                            <Button title="Save" onPress={() => setShow(false)} />
+                            <TouchableOpacity style={styles.actionButton} onPress={() => setShow(false)}><Text style={styles.buttonText}>Save</Text></TouchableOpacity>
                         </View>
                     </Pressable>
                 </Modal>
@@ -214,6 +293,7 @@ const AddEvent = ({ navigation }: ManagerHeaderScreenProps) => {
                         placeholderTextColor="#787975"
                     />
                 </TouchableOpacity>
+                <DropdownComponent data={EVENT_CATEGORIES} label='Category' value={eventCategory} onClick={(text) => setEventCategory(text)} style={styles.finput} />
                 <TextInput
                     style={styles.input}
                     placeholder="Event Location"
@@ -233,7 +313,7 @@ const AddEvent = ({ navigation }: ManagerHeaderScreenProps) => {
                     {selectedFreelancers.map((freelancer, index) => (
                         <View key={index} style={styles.chip}>
                             <Text style={styles.chipText}>
-                                {freelancer.number} {freelancer.role} {freelancer.price}
+                                {freelancer.number} {HospitalityRolesObject[freelancer.role]} {freelancer.price}
                             </Text>
                             <View style={styles.chipIcons}>
                                 <TouchableOpacity onPress={() => editFreelancer(index)}>
@@ -249,13 +329,7 @@ const AddEvent = ({ navigation }: ManagerHeaderScreenProps) => {
 
                 {freelancers.map((freelancer, index) => (
                     <View key={index} style={styles.freelancerinputContainer}>
-                        <TextInput
-                            style={styles.finput}
-                            placeholder="Role (e.g. Bartender)"
-                            value={freelancer.role}
-                            onChangeText={(text) => handleInputChange(index, 'role', text)}
-                            placeholderTextColor="#787975"
-                        />
+                        <DropdownComponent data={HospitalityRoles} label='Roles' value={freelancer.role} onClick={(text) => handleInputChange(index, 'role', text)} style={styles.finput} />
 
                         <TextInput
                             style={styles.finput}
@@ -263,11 +337,11 @@ const AddEvent = ({ navigation }: ManagerHeaderScreenProps) => {
                             value={freelancer.number}
                             onChangeText={(text) => handleInputChange(index, 'number', text)}
                             placeholderTextColor="#787975"
-                            keyboardType="numeric"
+                            keyboardType="phone-pad"
                         />
 
                         <TextInput
-                            keyboardType="numeric"
+                            keyboardType="phone-pad"
                             style={styles.finput}
                             placeholder="Pricing (e.g. 1500Rs/day)"
                             value={freelancer.price}
@@ -292,7 +366,7 @@ const AddEvent = ({ navigation }: ManagerHeaderScreenProps) => {
                 </View>
 
                 <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-                    <Text style={styles.submitButtonText}>Create Event</Text>
+                    <Text style={styles.submitButtonText}>{mode === OperationType.UPDATE ? 'Update Event' : 'Create Event'}</Text>
                 </TouchableOpacity>
             </ScrollView>
             }
@@ -300,7 +374,17 @@ const AddEvent = ({ navigation }: ManagerHeaderScreenProps) => {
     );
 };
 
-const styles = StyleSheet.create({
+const useStyles = (theme: any) => StyleSheet.create({
+    actionButton: {
+        backgroundColor: theme.lightGray1,
+        borderRadius: 5,
+        padding: 10,
+    },
+    buttonText: {
+        color: theme.primaryColor,
+        fontSize: 16,
+        fontWeight: 500,
+    },
     mainContainer: {
         backgroundColor: '#060605',
         padding: 20,
@@ -385,8 +469,8 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
     },
     dialogContainer: {
-        width: '80%', // Adjust the width as needed
-        backgroundColor: 'white',
+        width: '80%',
+        backgroundColor: theme.lightGray,
         borderRadius: 10,
         padding: 20,
         alignItems: 'center',

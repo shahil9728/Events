@@ -1,25 +1,39 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
-import { Icon } from '@rneui/themed';
+import { View, StyleSheet, ActivityIndicator, ScrollView, SafeAreaView } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
-// import * as ImagePicker from 'expo-image-picker';
+import * as ImagePicker from 'expo-image-picker';
 import { uploadToS3 } from '@/helpers/aws';
 import { ProfileUpdateScreenRouteProp } from '@/app/RootLayoutHelpers';
 import { useTheme } from '@/app/ThemeContext';
 import { useSnackbar } from '@/components/SnackBar';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { supabase } from '@/lib/supabase';
 import IconwithContainer from '@/components/IconwithContainer';
+import { HospitalityRoles } from '../../employeeConstants';
+import { updateEmployeeInfo } from '@/app/redux/Employee/accountInfo/accountInfoActions';
+import ETextInputContainer2 from '@/components/ETextInputContainer2';
+import ProfileImage from '@/components/ProfileImage';
+import MultiSelectWithChips from '@/components/MultiSelectWithChips';
+import useExitAppOnBackPress from '@/hooks/useExitAppOnBackPress';
+import * as FileSystem from 'expo-file-system';
+import ResumeUploader from '@/components/ResumeUploader';
 
 const ProfileUpdateScreen = ({ route, navigation }: ProfileUpdateScreenRouteProp) => {
-    const [location, setLocation] = useState("Hyderabad");
+    const { theme } = useTheme();
+    const { showSnackbar } = useSnackbar();
+    const styles = createStyles(theme);
+    const onboardingUser = useSelector((state: any) => state.onboardingReducer);
     const [profileImage, setProfileImage] = useState<string | null>(null);
     const [resume, setResume] = useState<string | null>(null);
-    const { theme } = useTheme();
-    const styles = createStyles(theme);
-    const { showSnackbar } = useSnackbar();
-    const onboardingUser = useSelector((state: any) => state.onboardingReducer);
+    const [isLoading, setIsLoading] = useState(false);
     const [name, setName] = useState(onboardingUser.name);
+    const [location, setLocation] = useState("Hyderabad");
+    const [salary, setSalary] = useState("");
+    const [height, setHeight] = useState("");
+    const [bio, setBio] = useState("");
+    const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+    const dispatch = useDispatch();
+    useExitAppOnBackPress();
 
     async function handleResumeUpload() {
         const result = await DocumentPicker.getDocumentAsync({
@@ -27,11 +41,26 @@ const ProfileUpdateScreen = ({ route, navigation }: ProfileUpdateScreenRouteProp
             copyToCacheDirectory: true,
             multiple: false,
         });
+
         if (result.assets && result.assets[0].uri != "") {
             const fileUri = result.assets[0].uri;
             const fileName = `resume_${name}.pdf`;
-            console.log("bhadwe", onboardingUser.id);
-            // console.log("Uploading resume to S3...");
+
+            try {
+                const fileInfo = await FileSystem.getInfoAsync(fileUri);
+                const fileSizeInBytes = fileInfo.exists && !fileInfo.isDirectory ? fileInfo.size ?? 0 : 0;
+                const maxSizeInMB = 5;
+
+                if (fileSizeInBytes > maxSizeInMB * 1024 * 1024) {
+                    showSnackbar(`File size should be less than ${maxSizeInMB}MB.`, 'error');
+                    return;
+                }
+            } catch (err) {
+                console.error("Error checking file size:", err);
+                return;
+            }
+
+
             const fileUrl = await uploadToS3(fileUri, fileName, onboardingUser.id, "resumes") as string | null;
 
             if (fileUrl) {
@@ -48,34 +77,41 @@ const ProfileUpdateScreen = ({ route, navigation }: ProfileUpdateScreenRouteProp
     }
 
     async function handleImageUpload() {
-        // const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        // if (status !== 'granted') {
-        //     Alert.alert('Permission Denied', 'You need to enable permissions in settings.');
-        //     return;
-        // }
-        // const result = await ImagePicker.launchImageLibraryAsync({
-        //     mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        //     allowsEditing: true,
-        //     aspect: [1, 1],
-        //     quality: 1,
-        // });
+        try {
+            await ImagePicker.requestMediaLibraryPermissionsAsync();
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                aspect: [1, 1],
+                quality: 1,
+            });
+            if (!result.canceled) {
+                const fileUri = result.assets[0].uri;
+                const fileName = `profile_${name}.jpg`;
+                console.log("Uploading image to S3...");
+                const fileUrl = await uploadToS3(fileUri, fileName, onboardingUser.id, "profile") as string | null;
 
-        // if (!result.canceled) {
-        //     const fileUri = result.assets[0].uri;
-        //     const fileName = `profile_${name}_${Date.now()}.jpg`;
-
-        //     console.log("Uploading profile image to S3...");
-        //     const fileUrl = await uploadToS3(fileUri, fileName, onboardingUser.id, "images") as string | null;
-
-        //     if (fileUrl) {
-        //         setProfileImage(fileUrl);
-        //     } else {
-        //         showSnackbar('Failed to upload profile image.', 'error');
-        //     }
-        // }
+                if (fileUrl) {
+                    setProfileImage(fileUrl);
+                }
+                else {
+                    setProfileImage(null);
+                }
+            }
+        } catch (e) {
+            console.log("Error occurred", e);
+        }
     }
 
     const handleNext = async () => {
+        console.log('Profile data:', name, location, salary, selectedSkills, resume, profileImage);
+        if (!name || !location || !salary || selectedSkills.length === 0 || !resume) {
+            showSnackbar('Please fill all the fields.', 'error');
+            return;
+        }
+
+
+        setIsLoading(true);
         let id = ""
         if (onboardingUser.id == "") {
             console.log('No onboarding user found. Using session user id');
@@ -85,125 +121,114 @@ const ProfileUpdateScreen = ({ route, navigation }: ProfileUpdateScreenRouteProp
             id = onboardingUser.id;
         }
 
+        const payload = {
+            id: id,
+            name: name,
+            email: onboardingUser.email,
+            number: onboardingUser.number,
+            salary: salary,
+            location: location,
+            height: height,
+            resume_url: resume || '',
+            profile_url: profileImage || '',
+            role: selectedSkills.join(', '),
+            bio: bio,
+            created_at: new Date(),
+        }
+
         const { error: profileError } = await supabase
             .from('employees')
-            .upsert({
-                id: id,
-                name: name,
-                resume_url: resume || '',
-                profile_image_url: profileImage || '',
-            });
+            .upsert(payload);
 
         if (profileError) {
-            Alert.alert('Error saving profile data:', profileError.message);
+            console.log('Error saving profile data:', profileError.message);
         } else {
+            dispatch(updateEmployeeInfo(payload));
+            console.log('Profile data saved successfully');
             navigation.navigate('Questions');
         }
+        setIsLoading(false);
     }
 
     return (
         <>
-            <View style={styles.container}>
-                <View style={styles.imageContainer}>
-                    <View style={styles.profileImageContainer}>
-                        {profileImage ? (
-                            <Image source={{ uri: profileImage }} style={styles.profileImage} />
-                        ) : (
-                            <Text style={styles.profileInitial}>{name.charAt(0).toUpperCase()}</Text>
-                        )}
-                        <TouchableOpacity style={styles.editIcon} onPress={handleImageUpload}>
-                            <Icon name="camera" type='font-awesome' size={18} color="#000" />
-                        </TouchableOpacity>
+            <SafeAreaView style={{ flex: 1 }}>
+                <ScrollView style={{ flex: 1 }}
+                    contentContainerStyle={styles.scrollContent}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    <View style={styles.container}>
+                        <ProfileImage profileUrl={profileImage || ''} name={name} editable={true} onEdit={handleImageUpload} conatinerStyle={{ marginBottom: 25 }} />
+
+                        <ETextInputContainer2
+                            placeholder="Enter Name"
+                            value={name}
+                            onChangeText={(text) => setName(text)}
+                        />
+                        <ETextInputContainer2
+                            placeholder="Enter Location"
+                            value={location}
+                            onChangeText={(text) => setLocation(text)}
+                        />
+                        <ETextInputContainer2
+                            placeholder="Enter Expected Salary"
+                            value={salary}
+                            onChangeText={(text) => setSalary(text)}
+                            keyboardType='phone-pad'
+                        />
+                        <ETextInputContainer2
+                            placeholder="Enter Height in ft/in"
+                            value={height}
+                            onChangeText={(text) => setHeight(text)}
+                            keyboardType='phone-pad'
+                        />
+                        <ETextInputContainer2
+                            placeholder="Enter bio in 100 characters"
+                            multiline={true}
+                            value={bio}
+                            onChangeText={(text) => setBio(text)}
+                            maxLength={100}
+                        />
+
+                        <MultiSelectWithChips
+                            selectedValues={selectedSkills}
+                            options={HospitalityRoles}
+                            placeholder='Type to search roles'
+                            onChangeSelectedValues={(newSelected) => {
+                                setSelectedSkills(newSelected);
+                            }}
+                        />
+
+                        <ResumeUploader
+                            containerStyle={{ marginTop: 10, width: "100%" }}
+                            resumeUrl={resume ?? ""}
+                            handleUpload={handleResumeUpload} />
+
                     </View>
-                </View>
-                <View style={styles.textInputCont}>
-                    <TextInput
-                        style={styles.textInput}
-                        placeholder="Enter Name"
-                        placeholderTextColor={theme.lightGray2}
-                        onChangeText={(text) => setName(text)}
-                        value={name}
-                    />
-                </View>
-                <View style={styles.textInputCont}>
-                    <TextInput
-                        style={styles.textInput}
-                        placeholder="Enter Location"
-                        placeholderTextColor={theme.lightGray2}
-                        onChangeText={(text) => setLocation(text)}
-                        value={location}
-                    />
-                </View>
-                <TouchableOpacity style={[styles.uploadButton, { backgroundColor: resume ? theme.primaryColor1 : theme.primaryColor }]} onPress={handleResumeUpload}>
-                    <Icon name="upload" type='font-awesome' size={18} color="#000" />
-                    <Text style={styles.uploadButtonText}>{resume ? "Resume Uploaded" : "Upload Resume"}</Text>
-                </TouchableOpacity>
-            </View>
-            <View style={{ width: "100%", padding: 15, alignItems: "flex-end" }}>
-                <IconwithContainer
-                    iconName='chevron-forward-outline'
-                    onPress={handleNext}
-                />
-            </View>
+                    <View style={{ width: "100%", padding: 15, alignItems: "flex-end" }}>
+                        {isLoading ? (<IconwithContainer>
+                            <ActivityIndicator size="small" color={theme.primaryColor} />
+                        </IconwithContainer>) : (
+                            <IconwithContainer
+                                iconName='chevron-forward-outline'
+                                onPress={handleNext}
+                            />
+                        )}
+                    </View>
+                </ScrollView>
+            </SafeAreaView>
         </>
     );
 };
 
 const createStyles = (theme: any) => StyleSheet.create({
+    scrollContent: {
+        paddingBottom: 100,
+    },
     container: {
-        flex: 1,
         padding: 20,
-        paddingTop: 50,
         alignItems: 'center',
-    },
-    imageContainer: {
-        alignItems: 'center',
-        marginBottom: 30,
-    },
-    profileImageContainer: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        backgroundColor: '#B6BF48',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
-    },
-    profileImage: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-    },
-    profileInitial: {
-        fontSize: 40,
-        color: '#060605',
-        fontWeight: 'bold',
-    },
-    editIcon: {
-        position: 'absolute',
-        bottom: 0,
-        right: 0,
-        backgroundColor: '#E4F554',
-        width: 30,
-        height: 30,
-        borderRadius: 15,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    textInputCont: {
-        marginTop: 20,
-        padding: 15,
-        paddingHorizontal: 15,
-        borderRadius: 50,
-        backgroundColor: theme.lightGray1,
-        width: "100%"
-    },
-    textInput: {
-        backgroundColor: "transparent",
-        width: "100%",
-        borderBottomWidth: 0,
-        fontSize: 16,
-        color: theme.secondaryColor,
+        gap: 3,
     },
     uploadButton: {
         flexDirection: 'row',
@@ -211,7 +236,7 @@ const createStyles = (theme: any) => StyleSheet.create({
         alignItems: 'center',
         backgroundColor: theme.primaryColor,
         padding: 15,
-        borderRadius: 50,
+        borderRadius: 8,
         marginTop: 20,
         width: "100%"
     },
@@ -220,18 +245,40 @@ const createStyles = (theme: any) => StyleSheet.create({
         fontSize: 16,
         marginLeft: 10,
     },
-    button: {
-        backgroundColor: theme.lightGray1,
-        padding: 20,
-        paddingHorizontal: 15,
-        width: "100%",
-        alignItems: "center",
+    textInputCont: {
+        backgroundColor: theme.lightGray,
     },
-    buttonText: {
-        color: "white",
-        fontSize: 16,
-        fontWeight: 'bold',
-    }
+    chipsContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+    },
+    chip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: theme.primaryColor,
+        borderRadius: 20,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        marginLeft: 5,
+        marginBottom: 8,
+    },
+    chipText: {
+        color: theme.backgroundColor,
+        marginRight: 5,
+    },
+    dropdown: {
+        width: "100%",
+        backgroundColor: theme.lightGray,
+        borderRadius: 10,
+        maxHeight: 150,
+    },
+    dropdownItem: {
+        padding: 10,
+    },
+    dropdownItemText: {
+        color: theme.secondaryColor,
+    },
 
 });
 

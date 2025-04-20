@@ -1,22 +1,33 @@
 import { NavigationProps } from '@/app/RootLayoutHelpers';
 import { useTheme } from '@/app/ThemeContext'
 import IconwithContainer from '@/components/IconwithContainer';
+import useExitAppOnBackPress from '@/hooks/useExitAppOnBackPress';
 import React from 'react'
-import { View, Text, Image, StyleSheet, Button, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet } from 'react-native';
+import FastImage from 'react-native-fast-image';
+import { AnimatedImage } from 'react-native-animated-image';
+import SuccessCheckmark from '@/components/SuccessCheckMark';
+
 
 const PhoneFinal = ({ navigation }: NavigationProps) => {
+    useExitAppOnBackPress();
     const { theme } = useTheme();
     const styles = createStyles(theme);
+    const handleNext = async () => {
+        navigation.navigate('Onboarding')
+    }
+
     return (
         <View style={styles.container}>
-            <View style={{ marginTop: 50, alignItems: "center" }}>
-                <Text style={styles.heading}>Verified Successfully</Text>
-                <Image source={require('../../../../assets/images/check.gif')} />
+            <View style={{ alignItems: "center", display: "flex", justifyContent: "center", height: "80%" }}>
+                <SuccessCheckmark />
+                <Text style={styles.heading}>Succcess</Text>
+                <Text style={styles.subheading}>Your phone number has been successfully verified</Text>
             </View>
             <View style={{ width: "100%", padding: 15, alignItems: "flex-end" }}>
                 <IconwithContainer
                     iconName='chevron-forward-outline'
-                    onPress={() => navigation.navigate('ProfileUpdateScreen', { name1: "ProfileUpdateScreen" })}
+                    onPress={handleNext}
                 />
             </View>
         </View>
@@ -33,9 +44,13 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     heading: {
         color: "white",
-        fontSize: 36,
-        fontWeight: 'bold',
-        marginVertical: 20,
+        fontSize: 25,
+        fontWeight: 600,
+        marginTop: 60,
+    },
+    subheading: {
+        color: "white",
+        fontSize: 15,
     },
     button: {
         backgroundColor: theme.lightGray1,

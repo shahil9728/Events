@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react'
 import { StyleSheet, TouchableOpacity, View } from 'react-native'
 import Modal from './Modal'
 import { ThemeProvider, useTheme } from '@/app/ThemeContext'
+import { Image } from 'react-native'
 
 const EmployeeHeader = ({ navigation }: EmployeeHeaderScreenProps) => {
     const [user, setUser] = useState<string | null>(null);
@@ -29,11 +30,6 @@ const EmployeeHeader = ({ navigation }: EmployeeHeaderScreenProps) => {
                     onPress={() => navigation.navigate('EmployeeInbox')}
                 >
                     <Icon name="bell" type='feather' size={25} color="#F1F0E6" style={styles.icon} />
-                </TouchableOpacity>
-                <TouchableOpacity
-                    onPress={() => navigation.navigate('EmployeeSettings')}
-                >
-                    <Icon name="account-circle" size={25} color="#F1F0E6" style={styles.icon} />
                 </TouchableOpacity>
             </View>
         </>

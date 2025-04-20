@@ -1,22 +1,18 @@
 import GenericForm from '@/components/GenericForm'
 import React, { useState } from 'react'
-import { Alert, BackHandler, View } from 'react-native'
+import { View } from 'react-native'
 import Phone1 from './Phone1';
 import Phone2 from './Phone2';
 import { useSnackbar } from '@/components/SnackBar';
-import { NavigationProps, PhoneProps } from '@/app/RootLayoutHelpers';
-import axios from "axios";
+import { NavigationProps } from '@/app/RootLayoutHelpers';
 import { supabase } from '@/lib/supabase';
 import { useDispatch, useSelector } from 'react-redux';
-import { setNumberVerified } from '@/app/redux/Employee/onboarding/onboardingActions';
-import { useFocusEffect } from 'expo-router';
+import { setNumber, setNumberVerified } from '@/app/redux/Employee/onboarding/onboardingActions';
+import useExitAppOnBackPress from '@/hooks/useExitAppOnBackPress';
+import { generateOtp } from '../../utils';
 
-const generateOtp = () => {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-};
-
-const Phone = ({ route, navigation }: PhoneProps) => {
-    const user_type = route.params.user_type;
+const Phone = ({ navigation }: NavigationProps) => {
+    useExitAppOnBackPress();
     const [currentScreen, setCurrentScreen] = useState(1);
     const [contactNumber, setContactNumber] = React.useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -26,26 +22,11 @@ const Phone = ({ route, navigation }: PhoneProps) => {
     const [generatedOtp, setGeneratedOtp] = useState('');
     const onboardingUser = useSelector((state: any) => state.onboardingReducer);
 
-    useFocusEffect(
-        React.useCallback(() => {
-            const onBackPress = () => {
-                Alert.alert('Exit App', 'Do you want to exit the app?', [
-                    { text: 'Cancel', style: 'cancel' },
-                    { text: 'OK', onPress: () => BackHandler.exitApp() },
-                ]);
-                return true;
-            };
-            BackHandler.addEventListener('hardwareBackPress', onBackPress);
-            return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-        }, [])
-    );
-
-
     const sendOtp = async (contactNumber: string) => {
-        setIsLoading(true);
         try {
             const otp = generateOtp();
             setGeneratedOtp(otp);
+            dispatch(setNumber(contactNumber));
             console.log(otp);
             // const response = await axios.post(
             //     "https://n4u6j24rib.execute-api.ap-south-1.amazonaws.com/TwillService/sendmessage",
@@ -64,7 +45,7 @@ const Phone = ({ route, navigation }: PhoneProps) => {
             // }
             setCurrentScreen(2);
         } catch (err) {
-            console.log(err);
+            console.log("Error in Phone ", err);
             showSnackbar("Error sending OTP. Please try again.", 'error');
         } finally {
             setIsLoading(false);
@@ -93,12 +74,12 @@ const Phone = ({ route, navigation }: PhoneProps) => {
                     .from('users')
                     .upsert({
                         id: id,
+                        number: contactNumber,
                         phoneVerified: true,
-                        user_type: user_type,
                     });
 
                 if (error) {
-                    Alert.alert('Error saving user data:', error.message);
+                    console.log('Error saving user data:', error.message);
                 }
                 else {
                     dispatch(setNumberVerified(true));
@@ -114,15 +95,29 @@ const Phone = ({ route, navigation }: PhoneProps) => {
     }
 
 
-    const handleNext = () => {
+    const handleNext = async () => {
+        setIsLoading(true);
         if (currentScreen === 1) {
-
-            if (!contactNumber) {
+            if (!contactNumber || contactNumber.length !== 10 || isNaN(Number(contactNumber))) {
                 showSnackbar("Please enter a valid phone number.", 'error');
+                setIsLoading(false);
                 return;
             }
-            // Send OTP
-            sendOtp(contactNumber);
+
+            const { data: existingUser } = await supabase
+                .from('users')
+                .select('id')
+                .eq('number', contactNumber)
+                .single();
+
+            if (existingUser) {
+                showSnackbar("Phone number is already registered", 'error');
+                setIsLoading(false);
+                return;
+            } else {
+                // Send OTP
+                await sendOtp(contactNumber);
+            }
         }
         else if (currentScreen === 2) {
             // Verify OTP
@@ -150,7 +145,7 @@ const Phone = ({ route, navigation }: PhoneProps) => {
             )}
             {currentScreen === 2 && (
                 <GenericForm footerMsg="Step 2 of 2" icons={screenIcons} handleNext={handleNext}>
-                    <Phone2 otp={otp} setOtp={setOtp} />
+                    <Phone2 otp={otp} setOtp={setOtp} contactNumber={contactNumber} setCurrentScreen={setCurrentScreen} />
                 </GenericForm>
             )}
         </View>

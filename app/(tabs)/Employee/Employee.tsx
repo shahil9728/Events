@@ -1,71 +1,130 @@
-import React, { useEffect, useMemo } from 'react';
-import { View, Alert, StyleSheet, BackHandler, Image, TouchableOpacity, FlatList, TextInput } from 'react-native';
-import { Icon } from '@rneui/themed';
+import React, { useEffect, useState } from 'react';
+import { View, Alert, StyleSheet, BackHandler, FlatList, TextInput } from 'react-native';
 import { supabase } from '../../../lib/supabase';
 import { Text } from '@rneui/themed'
-import { useFocusEffect } from 'expo-router';
 import { useTheme } from '@/app/ThemeContext';
 import { NavigationProps } from '@/app/RootLayoutHelpers';
-import { event_row } from '@/app/BaseClasses';
-import { getFriendlydate } from '../utils';
+import { getRandomImageKey } from '../utils';
 import IconwithContainer from '@/components/IconwithContainer';
+import { useSelector } from 'react-redux';
+import FreelancerCard from '@/components/FreelancerCard';
+import { useSnackbar } from '@/components/SnackBar';
+import Loader from '@/components/Loader';
+import { OperationType } from '@/app/globalConstants';
+import useExitAppOnBackPress from '@/hooks/useExitAppOnBackPress';
 
 export default function Employee({ navigation }: NavigationProps) {
-    useFocusEffect(
-        React.useCallback(() => {
-            const onBackPress = () => {
-                Alert.alert('Exit App', 'Do you want to exit the app?', [
-                    { text: 'Cancel', style: 'cancel' },
-                    { text: 'OK', onPress: () => BackHandler.exitApp() },
-                ]);
-                return true;
-            };
-            BackHandler.addEventListener('hardwareBackPress', onBackPress);
-            return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-        }, [])
-    );
-
+    useExitAppOnBackPress();
     const { theme } = useTheme();
     const styles = createStyles(theme);
-
-    const [events, setEvents] = React.useState<any[]>([]);
+    const accountInfo = useSelector((state: any) => state.accountInfo);
+    const [events, setEvents] = useState<any[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filteredEvents, setFilteredEvents] = useState(events || []);
+    const { showSnackbar } = useSnackbar();
+    const [eventsLoading, setEventsLoading] = useState(false);
+    const [isLoading, setIsLoading] = React.useState(false);
+    const [requestStatus, setRequestStatus] = React.useState('pending');
 
     useEffect(() => {
+        setEventsLoading(true);
         const fetchEvents = async () => {
             const { data, error } = await supabase
                 .from('events')
-                .select('*');
+                .select('*')
+
             if (error) {
                 console.log(error);
             } else {
-                setEvents(data);
-                console.log(data);
+                // Filter events based on the employee roles
+                const userRoles = accountInfo.role.split(",");
+                const filteredEvents = data.filter(event => {
+                    const freelancerRoles = event.metadata.freelancer;
+                    return freelancerRoles.some((position: { role: string; price: number }) =>
+                        userRoles.includes(position.role)
+                    );
+                });
+
+                const { data: data1, error } = await supabase.from("employee_to_manager").select("*").eq("employee_id", accountInfo.employee_id).eq("req_status", "pending").eq("request_initiator", "EMPLOYEE");
+
+                if (error) {
+                    console.log(error);
+                } else {
+                    const pendingRequests = data1.map((d: any) => d.event_id);
+                    setEvents(filteredEvents.filter((event: any) => {
+                        return !pendingRequests.includes(event.id);
+                    }));
+                    console.log("Events", filteredEvents);
+                }
+
             }
+            setEventsLoading(false);
         };
         fetchEvents();
     }, [])
 
+    useEffect(() => {
+        if (!searchQuery.trim()) {
+            setFilteredEvents(events);
+            return;
+        }
 
-    const renderEvent = ({ item }: { item: event_row }) => (
-        <TouchableOpacity style={styles.eventCard} onPress={() => navigation.navigate('EmployeeEventScreen', item)} >
-            <Image source={{ uri: item.metadata?.image ?? "https://via.placeholder.com/300" }} style={styles.eventImage} />
-            <View style={styles.eventDetails}>
-                <Text style={styles.eventTitle}>{item.title}</Text>
-                <Text style={styles.eventSubTitle} numberOfLines={1} ellipsizeMode='tail'>{item.metadata?.description}</Text>
-                <View style={{ flexDirection: 'row', gap: 8 }}>
-                    <Text style={styles.eventDate}>{getFriendlydate(item.startDate)}</Text>
-                    <View style={{ flexDirection: 'row', gap: 2 }}>
-                        <Icon name="map-pin" type='feather' size={15} color={"#F1F0E6"} />
-                        <Text style={styles.eventLocation}>{item.metadata?.location}</Text>
-                    </View>
-                </View>
-            </View>
-            <Text style={styles.eventPrice}>{item.metadata?.freelancer[0].price}$</Text>
-            <TouchableOpacity style={styles.favoriteIcon}>
-                <Icon name="heart" type='font-awesome' size={20} color="#fff" />
-            </TouchableOpacity>
-        </TouchableOpacity>
-    );
+        const filtered = events.filter(event => {
+            const searchLower = searchQuery.toLowerCase();
+
+            return (
+                (event.title?.toLowerCase().includes(searchLower)) ||
+                (event.metadata?.description?.toLowerCase().includes(searchLower)) ||
+                (event.metadata?.location?.toLowerCase().includes(searchLower)) ||
+                (event.metadata?.category?.toLowerCase().includes(searchLower))
+            );
+        });
+
+        setFilteredEvents(filtered);
+    }, [searchQuery, events]);
+
+    const clearSearch = () => {
+        setSearchQuery('');
+    };
+
+
+    const getFreelancerWithMaxPrice = (metadata: any) => {
+        if (metadata?.freelancer?.length) {
+            return metadata.freelancer.reduce((max: any, current: any) => {
+                return (parseInt(current.price?.toString() || "0") > parseInt(max.price?.toString() || "0"))
+                    ? current
+                    : max;
+            }, metadata.freelancer[0]);
+        }
+        return null;
+    };
+
+
+    const handleRequest = async (item: any) => {
+        setIsLoading(true);
+        const updates = {
+            employee_id: accountInfo.employee_id,
+            manager_id: item.manager_id,
+            event_id: item.id,
+            event_title: item.title,
+            req_status: 'pending',
+            role_id: getFreelancerWithMaxPrice(item.metadata)?.role,
+            event_metadata: { ...item.metadata, startDate: item?.startDate, endDate: item?.endDate },
+            request_initiator: 'EMPLOYEE',
+        }
+        const { data, error } = await supabase
+            .from('employee_to_manager')
+            .upsert(updates);
+        if (error) {
+            console.log(error);
+        } else {
+            console.log(data);
+            setRequestStatus('sent');
+        }
+        setIsLoading(false);
+        showSnackbar('Request Sent Successfully', 'success');
+    }
+
 
 
     return (
@@ -73,21 +132,58 @@ export default function Employee({ navigation }: NavigationProps) {
             <View style={styles.searchBar}>
                 <TextInput
                     style={styles.searchBarInput}
-                    placeholder="Trending events"
+                    placeholder="Search events"
                     placeholderTextColor={theme.lightGray2}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    clearButtonMode="while-editing"
                 />
-                <IconwithContainer
+                {searchQuery ? (
+                    <IconwithContainer
+                        iconName='close-circle'
+                        onPress={clearSearch} />
+                ) : <IconwithContainer
                     iconName='search'
                     onPress={() => { }}
-                />
+                />}
             </View>
             <View>
-                <Text style={styles.sectionTitle}>EVENTS ({events.length})</Text>
-                <FlatList
-                    data={events}
-                    renderItem={renderEvent}
-                    keyExtractor={(item, index) => index.toString()}
-                />
+                {eventsLoading ? <Loader /> : (
+                    <>
+                        <Text style={styles.sectionTitle}>EVENTS ({filteredEvents.length})</Text>
+                        {filteredEvents.length === 0 &&
+                            (<View>
+                                <Text style={styles.emptyRow}>No events match your current skills</Text>
+                                <Text style={[styles.emptyRow, { fontSize: 12, marginTop: 2 }]}>Try enhancing your profile with more skills to unlock additional opportunities</Text>
+                            </View>)}
+                        <FlatList
+                            data={filteredEvents}
+                            renderItem={({ item, index }) => (
+                                <FreelancerCard
+                                    item={item}
+                                    cardType="event"
+                                    alternate={index % 2 === 0 ? false : true}
+                                    onEventPress={() =>
+                                        navigation.navigate('EmployeeEventScreen', {
+                                            mode: OperationType.UPDATE,
+                                            eventData: {
+                                                ...item,
+                                                metadata: {
+                                                    ...item.metadata,
+                                                    image: item.metadata?.image || getRandomImageKey(),
+                                                    category: item.metadata?.category || "Wedding",
+                                                },
+                                            },
+                                        })
+                                    }
+                                    isLoading={isLoading}
+                                    onSubmit={handleRequest}
+                                    requestStatus={requestStatus}
+                                />
+                            )}
+                            keyExtractor={(item, index) => index.toString()}
+                        />
+                    </>)}
             </View>
         </View>
     );
@@ -123,49 +219,10 @@ const createStyles = (theme: any) => StyleSheet.create({
         fontWeight: 'bold',
         marginVertical: 10,
     },
-    eventCard: {
-        backgroundColor: theme.lightGray,
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderRadius: 8,
-        padding: 10,
-        marginBottom: 15,
-    },
-    eventImage: {
-        height: 80,
-        width: 80,
-        borderRadius: 8,
-    },
-    eventDetails: {
-        flex: 1,
-        gap: 5,
-        marginLeft: 10,
-        borderWidth: 1,
-        borderColor: "transparent",
-    },
-    eventTitle: {
-        color: theme.headingColor,
-        fontSize: 14,
-        fontWeight: 'bold',
-    },
-    eventSubTitle: {
-        color: theme.lightGray2,
-        fontSize: 12,
-    },
-    eventDate: {
-        color: theme.primaryColor1,
-        fontSize: 12,
-    },
-    eventLocation: {
-        color: theme.primaryColor1,
-        fontSize: 12,
-    },
-    eventPrice: {
-        color: theme.primaryColor,
-        fontSize: 14,
-        fontWeight: 'bold',
-    },
-    favoriteIcon: {
-        marginLeft: 10,
+    emptyRow: {
+        marginTop: 20,
+        color: 'white',
+        fontSize: 15,
+        textAlign: "center"
     },
 });

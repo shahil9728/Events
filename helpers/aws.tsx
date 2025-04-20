@@ -56,3 +56,33 @@ export const uploadToS3 = async (fileUri: string, fileName: string, userId: stri
         throw new Error('Failed to upload file to S3.');
     }
 };
+
+/**
+ * Deletes a file from AWS S3
+ * @param {string} fileUrl - The URL of the file to delete
+ * @returns {Promise<void>}
+ */
+export const deleteFromS3 = async (fileUrl: string) => {
+    try {
+        const fileKey = fileUrl.split(`${S3_BUCKET}/`)[1];
+        const params: AWS.S3.DeleteObjectRequest = {
+            Bucket: S3_BUCKET,
+            Key: fileKey,
+        };
+
+        return new Promise((resolve, reject) => {
+            s3.deleteObject(params, (err, data) => {
+                if (err) {
+                    console.error('Error deleting from S3:', err.message);
+                    reject(err.message);
+                } else {
+                    console.log('File deleted successfully:', data);
+                    resolve(undefined);
+                }
+            });
+        });
+    } catch (error) {
+        console.error('Error preparing file for S3 deletion:', (error as Error).message);
+        throw new Error('Failed to delete file from S3.');
+    }
+};

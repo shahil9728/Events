@@ -8,7 +8,6 @@ export const onboardingIntialState = {
     role: '',
     photos: [],
     languages: [],
-    isLoading: false,
 };
 
 export const SET_ONBOARDING_DATA = 'SET_ONBOARDING_DATA';

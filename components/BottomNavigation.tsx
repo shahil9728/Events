@@ -3,7 +3,7 @@ import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Icon } from '@rneui/themed';
 
-const BottomNavigation = ({ state, descriptors, navigation }: BottomTabBarProps) => {
+const BottomNavigation = ({ state, descriptors, navigation, activeTab }: BottomTabBarProps & { activeTab?: string }) => {
     return (
         <View style={styles.tabBarOuterContainer}>
             <View style={styles.tabBarContainer}>
@@ -17,7 +17,6 @@ const BottomNavigation = ({ state, descriptors, navigation }: BottomTabBarProps)
                                 : route.name;
 
                     const isFocused = state.index === index;
-
                     const onPress = () => {
                         const event = navigation.emit({
                             type: 'tabPress',

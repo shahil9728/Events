@@ -1,15 +1,18 @@
+import { ICONTYPE } from '@/app/globalConstants';
 import { useTheme } from '@/app/ThemeContext'
-import React, { useRef, useState } from 'react'
+import { Icon } from '@rneui/themed';
+import React, { useRef } from 'react'
 import { StyleSheet, Text, TextInput, View } from 'react-native'
-// import { TextInput as TextInput1 } from 'react-native-paper';
 
 interface Phone2Props {
     otp: string[];
     setOtp: React.Dispatch<React.SetStateAction<string[]>>;
+    contactNumber: string;
+    setCurrentScreen?: any;
 }
 
 
-const Phone2 = ({ otp, setOtp }: Phone2Props) => {
+const Phone2 = ({ otp, setOtp, contactNumber, setCurrentScreen }: Phone2Props) => {
     const inputRefs = useRef<(TextInput | null)[]>([]);
     const { theme } = useTheme();
     const styles = createStyles(theme);
@@ -34,14 +37,11 @@ const Phone2 = ({ otp, setOtp }: Phone2Props) => {
 
     const handleBackspace: BackspaceHandler = (text, index) => {
         const newOtp = [...otp];
-
-        // If the current field is empty and backspace is pressed, move focus to the previous field
         if (!text && index > 0) {
-            newOtp[index - 1] = ''; // Clear the previous field as well
+            newOtp[index - 1] = '';
             setOtp(newOtp);
             inputRefs.current[index - 1]?.focus();
         } else {
-            // Otherwise, just clear the current field
             newOtp[index] = '';
             setOtp(newOtp);
         }
@@ -51,7 +51,10 @@ const Phone2 = ({ otp, setOtp }: Phone2Props) => {
     return (
         <View style={styles.container}>
             <Text style={styles.heading}>Enter your verification code</Text>
-            <Text style={styles.subheading}>Sent on number</Text>
+            <View style={styles.subheading}>
+                <Text style={styles.subheading}>Sent on number {contactNumber}</Text>
+                <Icon name='pencil' type={ICONTYPE.IONICON} size={20} color={theme.primaryColor} onPress={() => setCurrentScreen(1)} style={{ marginLeft: 5 }} />
+            </View>
             <View style={styles.otpContainer}>
                 {otp.map((digit: string, index: number) => (
                     <TextInput
@@ -77,7 +80,6 @@ const Phone2 = ({ otp, setOtp }: Phone2Props) => {
 const createStyles = (theme: any) => StyleSheet.create({
     container: {
         flex: 1,
-        // backgroundColor: theme.backgroundColor,
     },
     heading: {
         color: theme.headingColor,
@@ -87,8 +89,9 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     subheading: {
         fontSize: 14,
-        textAlign: 'center',
-        color: theme.lightGray
+        color: theme.lightGray2,
+        display: 'flex',
+        flexDirection: 'row',
     },
     textInputCont: {
         padding: 10,

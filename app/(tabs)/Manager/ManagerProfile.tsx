@@ -1,85 +1,75 @@
+import React, { useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Icon } from '@rneui/themed'
-import React, { useEffect, useState } from 'react'
-import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { useSnackbar } from '@/components/SnackBar';
+import { useDispatch, useSelector } from 'react-redux';
 import Loader from '@/components/Loader';
+import ProfileImage from '@/components/ProfileImage';
+import { updateManagerInfo } from '@/app/redux/Employee/accountInfo/accountInfoActions';
+import ETextInputContainer2 from '@/components/ETextInputContainer2';
+import ButtonWithLoader from '@/components/ButtonWithLoader';
+
+type ManagerAccountInfo = {
+    name: string;
+    number: string;
+    email: string;
+    // profile_url: string;
+};
 
 const ManagerProfile = () => {
-    const [loading, setLoading] = useState(true);
-    const [originalValues, setOriginalValues] = useState({
-        name: '',
-        number: '',
-        email: '',
-        dob: '',
-        gender: ''
-    });
-    const [currentValues, setCurrentValues] = useState({ ...originalValues });
-
-    useEffect(() => {
-        getProfile();
-    }, []);
-
-    async function getProfile() {
-        try {
-            setLoading(true);
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error('No user on the session!');
-            let { data, error, status } = await supabase
-                .from('managers')
-                .select(`*`)
-                .eq('id', user.id)
-                .single();
-            if (error && status !== 406) {
-                throw error;
-            }
-            if (data) {
-                setOriginalValues({ ...data });
-                setCurrentValues({ ...data });
-            }
-        } catch (error) {
-            if (error instanceof Error) {
-                Alert.alert(error.message);
-            }
-        } finally {
-            setLoading(false);
-        }
-    }
+    const [loading, setLoading] = useState(false);
+    const accountInfo = useSelector((store: any) => store.accountInfo);
+    console.log("accountInfo", accountInfo);
+    const originalValues = {
+        name: accountInfo.name || '',
+        number: accountInfo.number || '',
+        email: accountInfo.email || '',
+        // profile_url: accountInfo.profile_url || '',
+    };
+    const [currentValues, setCurrentValues] = useState({ ...accountInfo });
+    const { showSnackbar } = useSnackbar();
+    const dispatch = useDispatch();
 
     async function updateProfile() {
+        if (isDisabled) {
+            showSnackbar('No changes to update', 'warning');
+            return;
+        }
         console.log('Updating profile...');
         try {
             setLoading(true);
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error('Unable to update the profile');
             const updates = {
-                id: user.id,
+                id: accountInfo.id,
                 name: currentValues.name,
                 number: currentValues.number,
                 email: currentValues.email,
-                gender: currentValues.gender,
                 updated_at: new Date(),
             };
 
             let { error } = await supabase.from('managers').upsert(updates);
 
             if (error) {
+                console.error('Error updating profile:', error);
                 throw error;
             }
-
-            Alert.alert('Profile updated successfully!');
+            dispatch(updateManagerInfo(updates));
+            console.log('Profile updated successfully!');
+            showSnackbar('Profile updated successfully!', 'success');
         } catch (error) {
             if (error instanceof Error) {
-                Alert.alert(error.message);
+                showSnackbar(error.message, 'error');
             }
         } finally {
             setLoading(false);
         }
     }
 
-    const isDisabled = JSON.stringify(originalValues) === JSON.stringify(currentValues);
+    const isDisabled = Object.keys(originalValues).every(
+        (key) => originalValues[key as keyof ManagerAccountInfo] === currentValues[key as keyof ManagerAccountInfo]
+    );
 
     const handleInputChange = (field: string, value: string) => {
-        setCurrentValues((prev) => ({
+        setCurrentValues((prev: ManagerAccountInfo) => ({
             ...prev,
             [field]: value,
         }));
@@ -90,62 +80,19 @@ const ManagerProfile = () => {
             contentContainerStyle={{ flexGrow: 1 }}
             keyboardShouldPersistTaps="handled"
         >
-            {loading && <Loader />}
             <View style={styles.container}>
-                <View style={styles.imageContainer}>
-                    <View style={styles.profileImageContainer}>
-                        <View style={styles.profileImage}>
-                            <Text style={styles.profileInitial}>{currentValues.name.charAt(0).toUpperCase()}</Text>
-                        </View>
-                        <TouchableOpacity style={styles.editIcon}>
-                            <Icon name="pencil" type='font-awesome' size={18} color="#00000" />
-                        </TouchableOpacity>
-                    </View>
-                </View>
+                <ProfileImage profileUrl={""} name={currentValues.name} editable={false} conatinerStyle={{ marginBottom: 30 }} />
 
-                <View style={styles.inputContainer}>
-                    <TextInput style={styles.input} placeholder="Name" value={currentValues.name}
-                        onChangeText={(text) => handleInputChange('name', text)}
-                        placeholderTextColor="#787975"
-                    />
-                </View>
+                <ETextInputContainer2 placeholder="Name" value={currentValues.name}
+                    onChangeText={(text) => handleInputChange('name', text)} />
 
-                <View style={styles.inputContainer}>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Mobile"
-                        value={currentValues.number}
-                        onChangeText={(text) => handleInputChange('number', text)}
-                        placeholderTextColor="#787975"
-                    />
-                </View>
+                <ETextInputContainer2 placeholder="Mobile" value={currentValues.number}
+                    onChangeText={(text) => handleInputChange('number', text)} keyboardType='phone-pad' />
 
-                <View style={styles.inputContainer}>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Email"
-                        value={currentValues.email}
-                        onChangeText={(text) => handleInputChange('email', text)}
-                        placeholderTextColor="#787975"
-                    />
-                </View>
+                <ETextInputContainer2 placeholder="Email" value={currentValues.email}
+                    onChangeText={(text) => handleInputChange('email', text)} keyboardType='email-address' />
 
-                <View style={styles.inputContainer}>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Date of birth"
-                        value={currentValues.dob}
-                        onChangeText={(text) => handleInputChange('dob', text)}
-                        placeholderTextColor="#787975"
-                    />
-                </View>
-
-                <TouchableOpacity
-                    style={[styles.updateButton, { backgroundColor: isDisabled ? '#fff' : '#B6BF48' }]}
-                    disabled={isDisabled} onPress={updateProfile}
-                >
-                    <Text style={styles.updateButtonText}>Update Profile</Text>
-                </TouchableOpacity>
+                <ButtonWithLoader btnText="Update Profile" onClick={updateProfile} disabled={isDisabled} loading={loading} />
             </View>
         </ScrollView>
     )
@@ -157,42 +104,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#060605',
         padding: 20,
     },
-    imageContainer: {
-        alignItems: 'center',
-        marginBottom: 30,
-    },
-    profileImageContainer: {
-        width: 100,
-    },
-    profileImage: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        backgroundColor: '#B6BF48',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
-    },
-    profileInitial: {
-        fontSize: 40,
-        color: '#060605', 
-        fontWeight: 'bold',
-    },
-    editIcon: {
-        position: 'absolute',
-        bottom: 0,
-        right: 0,
-        backgroundColor: '#E4F554', 
-        width: 30,
-        height: 30,
-        borderRadius: 15,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    editText: {
-        fontSize: 14,
-        color: '#060605', 
-    },
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -200,14 +111,14 @@ const styles = StyleSheet.create({
     },
     input: {
         flex: 1,
-        backgroundColor: '#202023', 
-        color: '#ffffff', 
+        backgroundColor: '#202023',
+        color: '#ffffff',
         padding: 10,
         borderRadius: 8,
         fontSize: 16,
     },
     updateButton: {
-        backgroundColor: '#B6BF48', 
+        backgroundColor: '#B6BF48',
         padding: 15,
         borderRadius: 8,
         alignItems: 'center',
