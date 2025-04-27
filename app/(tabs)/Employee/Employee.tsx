@@ -12,6 +12,7 @@ import { useSnackbar } from '@/components/SnackBar';
 import Loader from '@/components/Loader';
 import { OperationType } from '@/app/globalConstants';
 import useExitAppOnBackPress from '@/hooks/useExitAppOnBackPress';
+import { UserRole } from '../employeeConstants';
 
 export default function Employee({ navigation }: NavigationProps) {
     useExitAppOnBackPress();
@@ -25,6 +26,7 @@ export default function Employee({ navigation }: NavigationProps) {
     const [eventsLoading, setEventsLoading] = useState(false);
     const [isLoading, setIsLoading] = React.useState(false);
     const [requestStatus, setRequestStatus] = React.useState('pending');
+    const [requestid, setRequestId] = React.useState('');
 
     useEffect(() => {
         setEventsLoading(true);
@@ -37,7 +39,7 @@ export default function Employee({ navigation }: NavigationProps) {
                 console.log(error);
             } else {
                 // Filter events based on the employee roles
-                const userRoles = accountInfo.role.split(",");
+                const userRoles = accountInfo.role.split(",").map((role: string) => role.trim());
                 const filteredEvents = data.filter(event => {
                     const freelancerRoles = event.metadata.freelancer;
                     return freelancerRoles.some((position: { role: string; price: number }) =>
@@ -54,7 +56,6 @@ export default function Employee({ navigation }: NavigationProps) {
                     setEvents(filteredEvents.filter((event: any) => {
                         return !pendingRequests.includes(event.id);
                     }));
-                    console.log("Events", filteredEvents);
                 }
 
             }
@@ -64,6 +65,7 @@ export default function Employee({ navigation }: NavigationProps) {
     }, [])
 
     useEffect(() => {
+        if (eventsLoading) return;
         if (!searchQuery.trim()) {
             setFilteredEvents(events);
             return;
@@ -102,6 +104,23 @@ export default function Employee({ navigation }: NavigationProps) {
 
     const handleRequest = async (item: any) => {
         setIsLoading(true);
+        setRequestId(item.id);
+        const { data: data1, error: error1 } = await supabase
+            .from('employee_to_manager')
+            .select('manager_id, req_status, manager_id, event_id,request_initiator')
+            .eq('manager_id', item?.manager_id)
+            .eq('event_id', item.id)
+            .eq('request_initiator', UserRole.EMPLOYEE)
+
+        if (data1) {
+            const pendingEventIds = data1?.map(d => d.event_id) || [];
+            if (pendingEventIds.length > 0) {
+                showSnackbar('You already sent a request for this event', 'warning');
+                setIsLoading(false);
+                return;
+            }
+        }
+
         const updates = {
             employee_id: accountInfo.employee_id,
             manager_id: item.manager_id,
@@ -110,7 +129,7 @@ export default function Employee({ navigation }: NavigationProps) {
             req_status: 'pending',
             role_id: getFreelancerWithMaxPrice(item.metadata)?.role,
             event_metadata: { ...item.metadata, startDate: item?.startDate, endDate: item?.endDate },
-            request_initiator: 'EMPLOYEE',
+            request_initiator: UserRole.EMPLOYEE,
         }
         const { data, error } = await supabase
             .from('employee_to_manager')
@@ -147,42 +166,44 @@ export default function Employee({ navigation }: NavigationProps) {
                     onPress={() => { }}
                 />}
             </View>
-            <View>
+            <View style={{ flex: 1 }}>
                 {eventsLoading ? <Loader /> : (
                     <>
                         <Text style={styles.sectionTitle}>EVENTS ({filteredEvents.length})</Text>
-                        {filteredEvents.length === 0 &&
+                        {filteredEvents.length === 0 ?
                             (<View>
                                 <Text style={styles.emptyRow}>No events match your current skills</Text>
                                 <Text style={[styles.emptyRow, { fontSize: 12, marginTop: 2 }]}>Try enhancing your profile with more skills to unlock additional opportunities</Text>
-                            </View>)}
-                        <FlatList
-                            data={filteredEvents}
-                            renderItem={({ item, index }) => (
-                                <FreelancerCard
-                                    item={item}
-                                    cardType="event"
-                                    alternate={index % 2 === 0 ? false : true}
-                                    onEventPress={() =>
-                                        navigation.navigate('EmployeeEventScreen', {
-                                            mode: OperationType.UPDATE,
-                                            eventData: {
-                                                ...item,
-                                                metadata: {
-                                                    ...item.metadata,
-                                                    image: item.metadata?.image || getRandomImageKey(),
-                                                    category: item.metadata?.category || "Wedding",
+                            </View>) :
+                            <FlatList
+                                data={filteredEvents}
+                                renderItem={({ item, index }) => (
+                                    <FreelancerCard
+                                        item={item}
+                                        cardType="event"
+                                        alternate={index % 2 === 0 ? false : true}
+                                        onEventPress={() =>
+                                            navigation.navigate('EmployeeEventScreen', {
+                                                mode: OperationType.UPDATE,
+                                                eventData: {
+                                                    ...item,
+                                                    metadata: {
+                                                        ...item.metadata,
+                                                        image: item.metadata?.image || getRandomImageKey(),
+                                                        category: item.metadata?.category || "Wedding",
+                                                    },
                                                 },
-                                            },
-                                        })
-                                    }
-                                    isLoading={isLoading}
-                                    onSubmit={handleRequest}
-                                    requestStatus={requestStatus}
-                                />
-                            )}
-                            keyExtractor={(item, index) => index.toString()}
-                        />
+                                            })
+                                        }
+                                        isLoading={isLoading}
+                                        onSubmit={handleRequest}
+                                        requestStatus={requestStatus}
+                                        requestId={requestid}
+                                    />
+                                )}
+                                keyExtractor={(_, index) => index.toString()}
+                            />
+                        }
                     </>)}
             </View>
         </View>

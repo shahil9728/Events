@@ -38,6 +38,7 @@ export type ManagerListBase = {
     ManagerChat: undefined;
     ManagerSettings: undefined;
     AddEvent: { mode?: OperationValue; eventData?: event_row };
+    Auth: undefined;
 }
 export type EmployeeListBase = {
     EmployeeSettings: undefined;

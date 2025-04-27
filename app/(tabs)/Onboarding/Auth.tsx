@@ -270,6 +270,7 @@ export default function Auth({ navigation }: NavigationProps) {
                         onClose={() => {
                             setShowDialog(false);
                         }}
+                        title='Not Available'
                         cancelText="Ok"
                         message={dialogMsg}
                     />

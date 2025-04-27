@@ -1,8 +1,18 @@
-export type ImageKey = 'wedding';
+export type ImageKey = 'Wedding' | 'Concert' | 'Comedy';
 
-export const imageMap: Record<ImageKey, any> = {
-    'wedding': require('../../assets/images/wedding.jpg'),
-    // Add other images as needed
+export const imageMap: Record<ImageKey, any[]> = {
+    'Wedding': [
+        require('../../assets/images/wedding.jpg'),
+        require('../../assets/images/wedding1.png'),
+        require('../../assets/images/wedding2.png'),
+    ],
+    'Concert': [
+        require('../../assets/images/concert.png'),
+    ],
+    'Comedy': [
+        require('../../assets/images/comedy.png'),
+        require('../../assets/images/comedy1.png'),
+    ],
 };
 
 
@@ -52,7 +62,7 @@ export const HospitalityRolesObject = HospitalityRoles.reduce<Record<string, str
 }, {});
 
 export const EVENT_CATEGORIES = [
-    { label: 'Corporate Event', value: 'Corporate_Event' },
+    { label: 'Comedy', value: 'Comedy' },
     { label: 'Wedding', value: 'Wedding' },
     { label: 'Concert', value: 'Concert' },
     { label: 'Birthday Party', value: 'Birthday_Party' },

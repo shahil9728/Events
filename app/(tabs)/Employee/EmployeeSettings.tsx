@@ -30,7 +30,13 @@ const EmployeeSettings = ({ navigation }: NavigationProps) => {
             <CustomMenu menuItems={menuItems} />
             <TouchableOpacity
                 style={styles.menuItem}
-                onPress={() => supabase.auth.signOut()}
+                onPress={() => {
+                    navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'Auth' }],
+                    })
+                    supabase.auth.signOut()
+                }}
             >
                 <Text style={styles.menuText}>Sign Out</Text>
             </TouchableOpacity>

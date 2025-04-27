@@ -75,10 +75,7 @@ const EmployeeEventScreen = ({ navigation, route }: EmployeeEventScreenProps) =>
         <ScrollView style={styles.container}>
             {/* Event Image */}
             <View style={styles.imageContainer}>
-                <Image source={metadata?.image && metadata.image in imageMap
-                    ? imageMap[metadata.image as ImageKey]
-                    : imageMap.wedding
-                }
+                <Image source={metadata?.image || imageMap['Wedding'][0]}
                     style={styles.eventImage} />
                 {/* <TouchableOpacity style={styles.favoriteIcon}>
                     <Icon name="heart" type='font-awesome' size={20} color="#fff" />
@@ -112,15 +109,15 @@ const EmployeeEventScreen = ({ navigation, route }: EmployeeEventScreenProps) =>
 
             {/* About the Event */}
             <View style={styles.aboutSection}>
-                <View>
+                <View style={{ width: "70%" }}>
                     <Text style={styles.sectionTitle}>About The Event</Text>
                     <Text style={styles.descriptionText}>{metadata.description}</Text>
                 </View>
                 <View style={styles.aboutTitle}>
                     <View style={{ display: "flex", flexDirection: 'column', gap: "0px" }} >
                         <View >
-                            <Text style={[styles.sectionTitle, { color: theme.headingColor, fontSize: 18, marginBottom: 0 }]}>{getFreelancerWithMaxPrice() ? parseInt(getFreelancerWithMaxPrice()?.price?.toString() || "0") : 0}
-                                <Text style={{ fontSize: 12, color: theme.lightGray2 }}>/ Rs</Text>
+                            <Text style={[styles.sectionTitle, { color: theme.headingColor, fontSize: 18, marginBottom: 0 }]}>₹{getFreelancerWithMaxPrice() ? parseInt(getFreelancerWithMaxPrice()?.price?.toString() || "0") : 0}
+                                <Text style={{ fontSize: 12, color: theme.lightGray2 }}></Text>
                             </Text>
                         </View>
                         <Text style={{ fontSize: 12, color: theme.lightGray2 }}>{HospitalityRolesObject[getFreelancerWithMaxPrice()?.role || '0']}</Text>
@@ -198,9 +195,11 @@ const createStyles = (theme: any) => StyleSheet.create({
         marginBottom: 8,
     },
     descriptionText: {
+        lineHeight: 20,
         color: theme.secondaryColor,
     },
     bookingSection: {
+        marginTop: 20,
         flexDirection: 'row',
         justifyContent: 'center',
     },
@@ -210,7 +209,7 @@ const createStyles = (theme: any) => StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         gap: 8,
-        backgroundColor: '#B6BF48',
+        backgroundColor: theme.primaryColor,
         paddingHorizontal: 20,
         paddingVertical: 15,
         borderRadius: 50,

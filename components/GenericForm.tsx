@@ -1,7 +1,7 @@
 import { useTheme } from '@/app/ThemeContext'
 import { Icon } from '@rneui/themed';
 import React from 'react'
-import { StyleSheet, View, Text, ActivityIndicator } from 'react-native'
+import { StyleSheet, View, Text, ActivityIndicator, Keyboard } from 'react-native'
 import IconwithContainer from './IconwithContainer';
 import { ICONTYPE } from '@/app/globalConstants';
 
@@ -16,6 +16,14 @@ interface GenericFormProps {
 const GenericForm: React.FC<GenericFormProps> = ({ children, footerMsg, handleNext, icons, isLoading }) => {
     const { theme } = useTheme();
     const styles = createStyles(theme);
+
+    const handleClick = () =>{
+        Keyboard.dismiss();
+        if (handleNext) {
+            handleNext();
+        }
+    }
+
     return (
         <View style={styles.container}>
             {/* Icons Row */}
@@ -46,7 +54,7 @@ const GenericForm: React.FC<GenericFormProps> = ({ children, footerMsg, handleNe
                 ) : (
                     <IconwithContainer
                         iconName='chevron-forward-outline'
-                        onPress={handleNext}
+                        onPress={handleClick}
                     />
                 )}
             </View>

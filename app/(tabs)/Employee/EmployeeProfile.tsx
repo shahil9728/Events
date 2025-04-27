@@ -97,7 +97,7 @@ const EmployeeProfile = () => {
             const fileName = `resume_${currentValues.name}.pdf`;
 
             if (currentValues.resume_url) {
-                console.log("Deleting existing resume from S3...");
+                console.log("Deleting existing resume from S3...");  
                 await deleteFromS3(currentValues.resume_url);
             }
 
@@ -156,8 +156,6 @@ const EmployeeProfile = () => {
         }
     }
 
-    console.log("Current Values: ", currentValues);
-
     return (
         <ScrollView
             contentContainerStyle={{ flexGrow: 1 }}
@@ -204,7 +202,6 @@ const EmployeeProfile = () => {
                     options={HospitalityRoles}
                     placeholder='Type to search roles'
                     onChangeSelectedValues={(newSelected) => {
-                        console.log("Selected Tags: ", newSelected);
                         setCurrentValues((prev) => ({
                             ...prev,
                             role: newSelected.join(','),

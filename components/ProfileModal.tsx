@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
     Modal,
     Pressable,
@@ -8,6 +8,7 @@ import {
     Image,
     TouchableOpacity,
     ActivityIndicator,
+    Animated,
 } from 'react-native';
 import ChipsWithText from './ChipsWithText';
 import { getRandomProfileImage } from '@/app/(tabs)/utils';
@@ -47,16 +48,57 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
     const styles = useStyles(theme);
     const profileImage = useMemo(() => getRandomProfileImage(), []);
 
+    const [modalSlide] = useState(new Animated.Value(0)); // This controls the slide animation
+
+    const showModal = () => {
+        Animated.timing(modalSlide, {
+            toValue: 1,
+            duration: 300, // Adjust duration to your preference
+            useNativeDriver: true,
+        }).start();
+    };
+
+    const hideModal = () => {
+        Animated.timing(modalSlide, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+        }).start(() => setVisible(false));
+    };
+
+    // Trigger the modal open animation when `isVisible` changes
+    if (isVisible) {
+        showModal();
+    }
+
+
+
     return (
         <Modal
             visible={isVisible}
-            animationType="slide"
+            animationType="none"
             transparent={true}
             onRequestClose={() => setVisible(false)}
         >
-            <Pressable style={styles.modalContainer} onPress={() => setVisible(false)}>
+            <Pressable style={styles.modalContainer} onPress={hideModal}>
+                <View style={styles.overlay} />
                 <TouchableWithoutFeedback>
-                    <View style={styles.modalContent}>
+                    <Animated.View
+                        style={[
+                            styles.modalContent,
+                            {
+                                transform: [
+                                    {
+                                        translateY: modalSlide.interpolate({
+                                            inputRange: [0, 1],
+                                            outputRange: [500, 0], // Start from bottom and move up
+                                        }),
+                                    },
+                                ],
+                            },
+                        ]}
+                    >
+
                         <View style={styles.profileSection}>
                             <Image
                                 source={{ uri: item.profile_url || profileImage }}
@@ -164,7 +206,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                                 </View>
                             ))}
                         </View>
-                    </View>
+                    </Animated.View>
                 </TouchableWithoutFeedback>
             </Pressable>
         </Modal>
@@ -172,6 +214,11 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
 };
 
 const useStyles = (theme: any) => StyleSheet.create({
+    overlay: {
+        ...StyleSheet.absoluteFillObject, // Fill the entire container
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+
     profileSection: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -234,9 +281,9 @@ const useStyles = (theme: any) => StyleSheet.create({
         fontWeight: 'bold',
     },
     modalContainer: {
-        flex: 1,
+        ...StyleSheet.absoluteFillObject,
         justifyContent: 'flex-end',
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        // backgroundColor: 'rgba(0,0,0,0.5)',
     },
     modalContent: {
         padding: 20,

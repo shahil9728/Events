@@ -20,6 +20,7 @@ type CardProps = {
     onEventPress?: Function;
     isLoading?: boolean;
     requestStatus?: string;
+    requestId?: string;
 };
 
 
@@ -30,7 +31,8 @@ const FreelancerCard = ({
     onSubmit,
     isLoading,
     onEventPress,
-    requestStatus
+    requestStatus,
+    requestId,
 }: CardProps) => {
     const { theme } = useTheme();
     const styles = useStyles(theme);
@@ -67,7 +69,6 @@ const FreelancerCard = ({
     ];
 
     const [isModalVisible, setModalVisible] = useState(false);
-
     if (cardType === 'freelancer') {
         return (
             <>
@@ -144,20 +145,25 @@ const FreelancerCard = ({
                         <Text style={[styles.jobTitle, alternate && { color: "#A5A6A6" }]}>
                             {item.metadata?.description ? item.metadata.description.substring(0, 20) + (item.metadata.description.length > 50 ? '...' : '') : 'No description'}
                         </Text>
-                        <Text style={[styles.salary, alternate && { color: "#F1F0E6" }]}>{maxPrice}Rs
-                            <Text style={[styles.perMonth, alternate && { color: "#F1F0E6" }]}>/ event</Text>
+                        <Text style={[styles.salary, alternate && { color: "#F1F0E6" }]}>₹{maxPrice}
+                            <Text style={[styles.perMonth, alternate && { color: "#F1F0E6" }]}>/event</Text>
                         </Text>
                     </View>
 
                     <View style={styles.actionButtonRow}>
                         <TouchableOpacity
                             style={[styles.actionButton, alternate && { backgroundColor: "#F1F0E6" }]}
-                            onPress={() => onSubmit && onSubmit(item)} disabled={isLoading || requestStatus == "sent"}
+                            onPress={() => onSubmit && onSubmit(item)} disabled={isLoading && requestId == item.id && requestStatus == "sent"}
                         >
-                            {isLoading ? <ActivityIndicator size={25} color={"#F1F0E6"} /> : requestStatus == "pending" ? <Text style={[styles.buttonText,alternate && { color: "#2C2B2B" }]}>Send Request</Text> :
-                                <Text style={[styles.buttonText, alternate && { color: "#2C2B2B" }]}>
-                                    Request Sent
-                                </Text>}
+                            {isLoading && requestId == item.id ?
+                                <ActivityIndicator size={25} color={alternate ? "#2C2B2B" : "#F1F0E6"} /> :
+                                requestStatus == "pending" ?
+                                    <Text style={[styles.buttonText, alternate && { color: "#2C2B2B" }]}>Send Request</Text> :
+                                    requestId == item.id ?
+                                        <Text style={[styles.buttonText, alternate && { color: "#2C2B2B" }]}>
+                                            Request Sent
+                                        </Text>
+                                        : <Text style={[styles.buttonText, alternate && { color: "#2C2B2B" }]}>Send Request</Text>}
                         </TouchableOpacity>
                     </View>
                 </View>

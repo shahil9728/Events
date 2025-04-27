@@ -4,6 +4,7 @@ import React, { useRef, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
 import ETextInputContainer2 from './ETextInputContainer2';
 import { useTheme } from '@/app/ThemeContext';
+import { useSnackbar } from './SnackBar';
 
 type Option = { label: string; value: string };
 
@@ -27,6 +28,7 @@ const MultiSelectWithChips: React.FC<Props> = ({
 
     const inputRef = useRef<TextInput>(null);
     const [inputValue, setInputValue] = useState('');
+    const { showSnackbar } = useSnackbar(); 
     const [filteredOptions, setFilteredOptions] = useState<Option[]>([]);
 
     const handleInputChange = (text: string) => {
@@ -44,6 +46,10 @@ const MultiSelectWithChips: React.FC<Props> = ({
     };
 
     const handleSelect = (selectedLabel: string) => {
+        if(selectedValues.length >= 5) {
+            showSnackbar("You can only select up to 5 options.",'warning');
+            return;
+        }
         const selected = options.find(opt => opt.label === selectedLabel);
         if (!selected) return;
 

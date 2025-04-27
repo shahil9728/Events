@@ -10,7 +10,7 @@ import { getFriendlydate, getLabelFromList } from '../utils';
 import { Ionicons } from '@expo/vector-icons';
 import Collapsible from 'react-native-collapsible';
 import { FlatList } from 'react-native';
-import { EVENT_CATEGORIES } from '../employeeConstants';
+import { EVENT_CATEGORIES, imageMap } from '../employeeConstants';
 import EmployeeProfileModalCard from '@/components/EmployeeProfileModal';
 
 
@@ -125,8 +125,7 @@ const ManagerEventScreen = ({ navigation, route }: ManagerEventScreenProps) => {
         <ScrollView style={styles.container}>
             <View style={styles.imageContainer}>
                 <Image
-                    source={require('../../../assets/images/wedding.jpg')}
-                    // source={{ uri: eventImage }}
+                    source={metadata?.image || imageMap['Wedding'][0]}
                     style={styles.eventImage}
                 />
             </View>
@@ -161,7 +160,7 @@ const ManagerEventScreen = ({ navigation, route }: ManagerEventScreenProps) => {
                 <View style={styles.aboutTitle}>
                     <Text style={styles.sectionTitle}>About The Event</Text>
                     <View>
-                        <Text style={styles.salary}>{metadata.freelancer[0]?.price?.toString().split("/")[0] || 'N/A'} Rs
+                        <Text style={styles.salary}>₹{metadata.freelancer[0]?.price?.toString().split("/")[0] || 'N/A'}
                         </Text>
                         <Text style={styles.perMonth}>Starting from</Text>
                     </View>
@@ -274,6 +273,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     bookingSection: {
         marginTop: 10,
+        paddingBottom: 10,
         flexDirection: 'column',
         justifyContent: 'center',
     },

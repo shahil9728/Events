@@ -64,7 +64,7 @@ export const uploadToS3 = async (fileUri: string, fileName: string, userId: stri
  */
 export const deleteFromS3 = async (fileUrl: string) => {
     try {
-        const fileKey = fileUrl.split(`${S3_BUCKET}/`)[1];
+        const fileKey = fileUrl.split('.amazonaws.com/')[1];
         const params: AWS.S3.DeleteObjectRequest = {
             Bucket: S3_BUCKET,
             Key: fileKey,
