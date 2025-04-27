@@ -120,6 +120,7 @@ export default function ManagerMyEvents({ navigation }: ManagerHeaderScreenProps
                     setWarningDialog(false);
                     setSelectedEventId(null);
                 }}
+                title="Delete Event"
                 cancelText="Cancel"
                 confirmText="Delete"
                 onConfirm={() => selectedEventId && handleDelete(selectedEventId)}

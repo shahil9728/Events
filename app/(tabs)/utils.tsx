@@ -49,12 +49,14 @@ export const formatRoles = (role: string | string[] | undefined): React.ReactNod
 };
 
 
-export const getRandomImageKey = (): ImageKey => {
-    const keys = Object.keys(imageMap) as ImageKey[];
-    const randomIndex = Math.floor(Math.random() * keys.length);
-    return keys[randomIndex];
+export const getRandomImageFromKey = (key: ImageKey): any => {
+    const images = imageMap[key];
+    if (!images) {
+        throw new Error(`No images found for key: ${key}`);
+    }
+    const randomImageIndex = Math.floor(Math.random() * images.length);
+    return images[randomImageIndex];
 };
-
 
 export const getManagerId = async (accountInfo: any, dispatch: Dispatch) => {
     if (accountInfo?.manager_id) {

@@ -8,10 +8,11 @@ import Loader from '@/components/Loader';
 import { AddEventProps, ManagerHeaderScreenProps } from '@/app/RootLayoutHelpers';
 import { useSelector } from 'react-redux';
 import DropdownComponent from '@/components/DropdownComponent';
-import { EVENT_CATEGORIES, HospitalityRoles, HospitalityRolesObject } from '../employeeConstants';
+import { EVENT_CATEGORIES, HospitalityRoles, HospitalityRolesObject, ImageKey } from '../employeeConstants';
 import { useTheme } from '@/app/ThemeContext';
 import { OperationType } from '@/app/globalConstants';
 import { Freelancer } from '@/app/BaseClasses';
+import { getRandomImageFromKey } from '../utils';
 
 interface DayProps {
     dateString: string;
@@ -221,6 +222,7 @@ const AddEvent = ({ navigation, route }: AddEventProps) => {
                 description: eventDescription,
                 freelancer: selectedFreelancers,
                 eventCategory: eventCategory,
+                image: getRandomImageFromKey(eventCategory as ImageKey || 'Wedding'),
             },
             created_at: new Date(),
         };
@@ -249,7 +251,7 @@ const AddEvent = ({ navigation, route }: AddEventProps) => {
                 contentContainerStyle={styles.mainContainer}
                 keyboardShouldPersistTaps="handled"
             >
-                <Text style={styles.heading}>{mode === OperationType.UPDATE ? 'Update Event' : 'Create Event'}</Text>
+                {/* <Text style={styles.heading}>{mode === OperationType.UPDATE ? 'Update Event' : 'Create Event'}</Text> */}
                 <TextInput
                     style={styles.input}
                     placeholder="Event Name"
@@ -300,6 +302,7 @@ const AddEvent = ({ navigation, route }: AddEventProps) => {
                     value={eventLocation}
                     onChangeText={setEventLocation}
                     placeholderTextColor="#787975"
+                    maxLength={30}
                 />
                 <TextInput
                     style={styles.input}

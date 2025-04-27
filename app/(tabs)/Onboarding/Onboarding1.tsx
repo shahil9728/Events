@@ -11,11 +11,40 @@ import { OnBoarding1Props } from '@/app/RootLayoutHelpers';
 import IconwithContainer from '@/components/IconwithContainer';
 import { OperationType } from '@/app/globalConstants';
 import useExitAppOnBackPress from '@/hooks/useExitAppOnBackPress';
+import { supabase } from '@/lib/supabase';
+import { useDispatch, useSelector } from 'react-redux';
+import { updateManagerInfo } from '@/app/redux/Employee/accountInfo/accountInfoActions';
 
 export default function OnBoarding1({ navigation }: OnBoarding1Props) {
     const { theme } = useTheme();
     const styles = createStyles(theme);
+    const dispatch = useDispatch();
     useExitAppOnBackPress();
+
+    const onboardingUser = useSelector((state: any) => state.onboardingReducer);
+
+    const handleClick = async (option: string) => {
+        dispatch(updateManagerInfo({
+            number: onboardingUser.number,
+        }))
+        const { error: error1 } = await supabase.from('managers').upsert({
+            id: onboardingUser.id,
+            number: onboardingUser.number,
+        });
+
+        if (error1) {
+            console.log('Error saving manager data:', error1.message);
+        }
+        else {
+            console.log('Successfully saved manager data');
+        }
+
+        if (option === 'event') {
+            navigation.navigate('AddEvent', { mode: OperationType.CREATE, eventData: undefined });
+        } else {
+            navigation.navigate('RenderManagerTabs', { activeTab: 'ManagerDashboard' });
+        }
+    }
 
 
     return (
@@ -37,11 +66,11 @@ export default function OnBoarding1({ navigation }: OnBoarding1Props) {
                         borderColor: theme.secondaryColor,
                         borderWidth: 1,
                     }}
-                    onPress={() => { navigation.navigate('AddEvent', { mode: OperationType.CREATE, eventData: undefined }) }}
+                    onPress={() => { handleClick('event') }}
                     icon={
                         <IconwithContainer
                             iconName="chevron-forward-outline"
-                            onPress={() => { navigation.navigate('AddEvent', { mode: OperationType.UPDATE, eventData: undefined }) }}
+                            onPress={() => { handleClick('event') }}
                         />
                     }
                     iconPosition='right'
@@ -61,11 +90,11 @@ export default function OnBoarding1({ navigation }: OnBoarding1Props) {
                         borderColor: theme.secondaryColor,
                         borderWidth: 1,
                     }}
-                    onPress={() => { navigation.navigate('RenderManagerTabs', { activeTab: 'ManagerDashboard' }) }}
+                    onPress={() => { handleClick('browse') }}
                     icon={
                         <IconwithContainer
                             iconName="chevron-forward-outline"
-                            onPress={() => { navigation.navigate('RenderManagerTabs', { activeTab: 'ManagerDashboard' }) }}
+                            onPress={() => { handleClick('browse') }}
                         />
                     }
                     iconPosition='right'

@@ -10,8 +10,8 @@ const QuestionFinal = ({ navigation }: NavigationProps) => {
     return (
         <View style={styles.container}>
             <View style={{ marginTop: 50, alignItems: "center" }}>
-                <Text style={styles.heading}>Hey buddy, you are all set.</Text>
-                <Text style={styles.subheading}>Fetch top events for you right now.</Text>
+                <Text style={styles.heading}>Hey, you are all set.</Text>
+                {/* <Text style={styles.subheading}>Fetch top events for you right now.</Text> */}
                 <SuccessCheckmark />
             </View>
             <View style={{ width: "100%" }}>

@@ -19,7 +19,6 @@ type ManagerAccountInfo = {
 const ManagerProfile = () => {
     const [loading, setLoading] = useState(false);
     const accountInfo = useSelector((store: any) => store.accountInfo);
-    console.log("accountInfo", accountInfo);
     const originalValues = {
         name: accountInfo.name || '',
         number: accountInfo.number || '',

@@ -33,7 +33,13 @@ const ManagerSettings = ({ navigation }: ManagerHeaderScreenProps) => {
             <CustomMenu menuItems={menuItems} />
             <TouchableOpacity
                 style={styles.menuItem}
-                onPress={() => supabase.auth.signOut()}
+                onPress={async () => {
+                    await supabase.auth.signOut(); 
+                    navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'Auth' }],
+                    });
+                }}
             >
                 <Text style={styles.menuText}>Sign Out</Text>
             </TouchableOpacity>

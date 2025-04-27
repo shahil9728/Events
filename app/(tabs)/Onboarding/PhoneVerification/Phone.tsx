@@ -1,6 +1,6 @@
 import GenericForm from '@/components/GenericForm'
 import React, { useState } from 'react'
-import { View } from 'react-native'
+import { Keyboard, TouchableWithoutFeedback, View } from 'react-native'
 import Phone1 from './Phone1';
 import Phone2 from './Phone2';
 import { useSnackbar } from '@/components/SnackBar';
@@ -61,7 +61,7 @@ const Phone = ({ navigation }: NavigationProps) => {
             if (otpCode !== generatedOtp) {
                 showSnackbar("Error verifying OTP. Please try again.", 'error');
             } else {
-                showSnackbar("OTP verified successfully.", 'success');
+                // showSnackbar("OTP verified successfully.", 'success');
                 let id = ""
                 if (onboardingUser.id == "") {
                     console.log('No onboarding user found. Using session user id');

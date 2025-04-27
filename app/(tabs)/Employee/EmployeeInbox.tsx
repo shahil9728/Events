@@ -24,8 +24,11 @@ const EmployeeInbox: React.FC<NavigationProps> = ({ navigation }) => {
     const accountInfo = useSelector((store: { accountInfo: any }) => store.accountInfo);
 
     useEffect(() => {
-        setIsLoading(true);
-        fetchRequests();
+        const fetchData = async () => {
+            setIsLoading(true);
+            await fetchRequests();
+        };
+        fetchData();
     }, []);
 
     const fetchRequests = async () => {
@@ -34,7 +37,7 @@ const EmployeeInbox: React.FC<NavigationProps> = ({ navigation }) => {
             if (data) {
                 console.log("Employee Inbox", data);
                 setRequests(data);
-                setFilteredRequests(data.filter((d) => d.req_status === "pending"));
+                setFilteredRequests(data);
             } else {
                 console.error(error);
             }
@@ -147,7 +150,7 @@ const EmployeeInbox: React.FC<NavigationProps> = ({ navigation }) => {
                     {item.req_status !== 'pending' && (
                         <View>
                             <Text style={[{
-                                color: item.req_status === 'accepted' ? 'green' : 'red'
+                                color: item.req_status === 'accepted' ? theme.primaryColor : 'red'
                             }]}>
                                 {item.req_status.charAt(0).toUpperCase() + item.req_status.slice(1)}
                             </Text>
@@ -157,6 +160,7 @@ const EmployeeInbox: React.FC<NavigationProps> = ({ navigation }) => {
             </AnimatedPressable >
         )
     };
+    console.log("Filtered Requests", requests, filteredRequests);
     return (
         <View style={styles.container}>
             <View style={styles.headerCont}>
