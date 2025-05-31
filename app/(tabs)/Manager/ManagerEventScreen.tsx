@@ -5,13 +5,12 @@ import { supabase } from '@/lib/supabase';
 import { Icon } from '@rneui/themed';
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
-import { useSelector } from 'react-redux';
 import { getFriendlydate, getLabelFromList } from '../utils';
-import { Ionicons } from '@expo/vector-icons';
 import Collapsible from 'react-native-collapsible';
 import { FlatList } from 'react-native';
-import { EVENT_CATEGORIES, imageMap } from '../employeeConstants';
+import { EVENT_CATEGORIES, ImageKey1, imageMap, imageRequireMap } from '../employeeConstants';
 import EmployeeProfileModalCard from '@/components/EmployeeProfileModal';
+import { ICONTYPE } from '@/app/globalConstants';
 
 
 const ManagerEventScreen = ({ navigation, route }: ManagerEventScreenProps) => {
@@ -106,10 +105,10 @@ const ManagerEventScreen = ({ navigation, route }: ManagerEventScreenProps) => {
                             {reqLoadingId == item.employee_id ? <ActivityIndicator size="small" color={theme.primaryColor} /> : (
                                 <>
                                     <TouchableOpacity onPress={() => updateRequestStatus(item.employee_id, item.event_id, 'accepted')}>
-                                        <Ionicons name="checkmark" size={24} color="green" />
+                                        <Icon name="checkmark" type={ICONTYPE.IONICON} size={24} color="green" />
                                     </TouchableOpacity>
                                     <TouchableOpacity onPress={() => updateRequestStatus(item.employee_id, item.event_id, 'rejected')}>
-                                        <Ionicons name="close" size={24} color="red" />
+                                        <Icon name="close" type={ICONTYPE.IONICON} size={24} color="red" />
                                     </TouchableOpacity>
                                 </>
                             )}
@@ -125,7 +124,7 @@ const ManagerEventScreen = ({ navigation, route }: ManagerEventScreenProps) => {
         <ScrollView style={styles.container}>
             <View style={styles.imageContainer}>
                 <Image
-                    source={metadata?.image || imageMap['Wedding'][0]}
+                    source={imageRequireMap[metadata?.image as ImageKey1] || imageMap['Wedding'][0]}
                     style={styles.eventImage}
                 />
             </View>

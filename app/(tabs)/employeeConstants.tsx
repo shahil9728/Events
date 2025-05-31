@@ -15,6 +15,23 @@ export const imageMap: Record<ImageKey, any[]> = {
     ],
 };
 
+export type ImageKey1 =
+    | 'wedding'
+    | 'wedding1'
+    | 'wedding2'
+    | 'concert'
+    | 'comedy'
+    | 'comedy1';
+
+
+export const imageRequireMap: Record<ImageKey1, number> = {
+    wedding: require('../../assets/images/wedding.jpg'),
+    wedding1: require('../../assets/images/wedding1.png'),
+    wedding2: require('../../assets/images/wedding2.png'),
+    concert: require('../../assets/images/concert.png'),
+    comedy: require('../../assets/images/comedy.png'),
+    comedy1: require('../../assets/images/comedy1.png'),
+};
 
 export const GenderConstants = [
     { label: 'Male', value: '1' },

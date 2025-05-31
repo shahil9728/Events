@@ -208,6 +208,7 @@ const createStyles = (theme: any) => StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         width: "100%",
+        marginBottom: 20,
     },
     menuItem: {
         fontSize: 16,
@@ -215,13 +216,9 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     card: {
         padding: 16,
-        marginVertical: 14,
+        marginBottom: 14,
         backgroundColor: theme.lightGray,
         borderRadius: 8,
-        shadowColor: theme.lightGray,
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-        elevation: 5,
         display: 'flex',
         flexDirection: "row",
         justifyContent: 'space-between',

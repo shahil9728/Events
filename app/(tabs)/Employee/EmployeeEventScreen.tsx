@@ -7,7 +7,7 @@ import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { getFriendlydate, getLabelFromList } from '../utils';
-import { EVENT_CATEGORIES, HospitalityRolesObject, ImageKey, imageMap } from '../employeeConstants';
+import { EVENT_CATEGORIES, HospitalityRolesObject, ImageKey, ImageKey1, imageMap, imageRequireMap, UserRole } from '../employeeConstants';
 import { OperationType } from '@/app/globalConstants';
 
 const EmployeeEventScreen = ({ navigation, route }: EmployeeEventScreenProps) => {
@@ -48,6 +48,22 @@ const EmployeeEventScreen = ({ navigation, route }: EmployeeEventScreenProps) =>
 
     const handleRequest = async () => {
         setIsLoading(true);
+        const { data: data1, error: error1 } = await supabase
+            .from('employee_to_manager')
+            .select('manager_id, req_status, manager_id, event_id,request_initiator')
+            .eq('manager_id', manager_id)
+            .eq('event_id', id)
+            .eq('request_initiator', UserRole.EMPLOYEE)
+
+        if (data1) {
+            const pendingEventIds = data1?.map(d => d.event_id) || [];
+            if (pendingEventIds.length > 0) {
+                showSnackbar('You already sent a request for this event', 'warning');
+                setIsLoading(false);
+                return;
+            }
+        }
+
         const updates = {
             employee_id: accountInfo.employee_id,
             manager_id: manager_id,
@@ -55,8 +71,12 @@ const EmployeeEventScreen = ({ navigation, route }: EmployeeEventScreenProps) =>
             event_title: title,
             req_status: 'pending',
             role_id: getFreelancerWithMaxPrice()?.role,
-            event_metadata: route.params,
-            request_initiator: 'EMPLOYEE',
+            event_metadata: {
+                ...route.params.eventData?.metadata,
+                startDate: startDate,
+                endDate: endDate,
+            },
+            request_initiator: UserRole.EMPLOYEE,
         }
         const { data, error } = await supabase
             .from('employee_to_manager')
@@ -75,8 +95,7 @@ const EmployeeEventScreen = ({ navigation, route }: EmployeeEventScreenProps) =>
         <ScrollView style={styles.container}>
             {/* Event Image */}
             <View style={styles.imageContainer}>
-                <Image source={metadata?.image || imageMap['Wedding'][0]}
-                    style={styles.eventImage} />
+                <Image source={imageRequireMap[metadata.image as ImageKey1] || imageRequireMap['wedding']} style={styles.eventImage} />
                 {/* <TouchableOpacity style={styles.favoriteIcon}>
                     <Icon name="heart" type='font-awesome' size={20} color="#fff" />
                 </TouchableOpacity> */}
@@ -114,7 +133,7 @@ const EmployeeEventScreen = ({ navigation, route }: EmployeeEventScreenProps) =>
                     <Text style={styles.descriptionText}>{metadata.description}</Text>
                 </View>
                 <View style={styles.aboutTitle}>
-                    <View style={{ display: "flex", flexDirection: 'column', gap: "0px" }} >
+                    <View style={{ display: "flex", flexDirection: 'column', gap: "0px", alignItems: "center" }} >
                         <View >
                             <Text style={[styles.sectionTitle, { color: theme.headingColor, fontSize: 18, marginBottom: 0 }]}>₹{getFreelancerWithMaxPrice() ? parseInt(getFreelancerWithMaxPrice()?.price?.toString() || "0") : 0}
                                 <Text style={{ fontSize: 12, color: theme.lightGray2 }}></Text>
@@ -136,7 +155,7 @@ const EmployeeEventScreen = ({ navigation, route }: EmployeeEventScreenProps) =>
                             : (
                                 <TouchableOpacity style={styles.bookButton} >
                                     <Text style={styles.bookButtonText}>Request sent</Text>
-                                    <Icon name="checkmark-outline" type="ionicon" size={20} color="#E4F554" />
+                                    <Icon name="checkmark-outline" type="ionicon" size={20} color={theme.blackColor} />
                                 </TouchableOpacity>
                             )}
                 </View>
@@ -200,6 +219,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     bookingSection: {
         marginTop: 20,
+        paddingBottom: 20,
         flexDirection: 'row',
         justifyContent: 'center',
     },

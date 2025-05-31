@@ -258,6 +258,7 @@ const AddEvent = ({ navigation, route }: AddEventProps) => {
                     value={eventName}
                     onChangeText={setEventName}
                     placeholderTextColor="#787975"
+                    maxLength={25}
                 />
                 <Modal visible={show} transparent={true} animationType="slide" style={{ borderColor: "red", borderWidth: 2 }} onRequestClose={() => setShow(false)}>
                     <Pressable onPress={() => setShow(false)} style={styles.modalBackground}>

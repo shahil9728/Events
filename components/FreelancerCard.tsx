@@ -6,7 +6,7 @@ import { useTheme } from '@/app/ThemeContext';
 import { useSelector } from 'react-redux';
 import EDialog from './EDialog';
 import { formatRoles, getFriendlydate, getLabelFromList, getRandomProfileImage } from '@/app/(tabs)/utils';
-import { employeeDetails, EVENT_CATEGORIES, HospitalityRolesObject } from '@/app/(tabs)/employeeConstants';
+import { employeeDetails, EVENT_CATEGORIES, HospitalityRolesObject, ImageKey1, imageRequireMap } from '@/app/(tabs)/employeeConstants';
 import AnimatedPressable from './AnimatedPressable';
 import ChipsWithText from './ChipsWithText';
 import ProfileModal from './ProfileModal';
@@ -105,7 +105,7 @@ const FreelancerCard = ({
         );
     }
     else {
-        const imageUrl = item.metadata?.image ? { uri: item.metadata.image } : require('../assets/images/wedding.jpg');
+        const imageUrl = imageRequireMap[item.metadata.image as ImageKey1] ?? require('../assets/images/wedding.jpg');
         const maxPrice = item.metadata?.freelancer?.length
             ? Math.max(...item.metadata.freelancer.map((f: any) => parseInt(f.price?.toString() || "0")))
             : 0;

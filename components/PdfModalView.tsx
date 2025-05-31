@@ -1,7 +1,7 @@
 import { ICONTYPE } from '@/app/globalConstants';
 import { useTheme } from '@/app/ThemeContext';
 import { Icon } from '@rneui/themed';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Modal,
   View,
@@ -9,19 +9,17 @@ import {
   Text,
   StyleSheet,
   GestureResponderEvent,
-  Linking,
 } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
 import { WebView } from 'react-native-webview';
-import * as FileSystem from 'expo-file-system';
-import * as WebBrowser from 'expo-web-browser';
 
 
 interface PdfModalProps {
   resumeUrl: string;
+  alternate?: boolean;
 }
 
-const PdfModalView: React.FC<PdfModalProps> = ({ resumeUrl }) => {
+const PdfModalView: React.FC<PdfModalProps> = ({ resumeUrl, alternate }) => {
   const { theme } = useTheme();
   const styles = useStyles(theme);
   const [loading, setLoading] = useState(true);
@@ -41,7 +39,7 @@ const PdfModalView: React.FC<PdfModalProps> = ({ resumeUrl }) => {
   return (
     <>
       <TouchableOpacity onPress={openModal}>
-        <Text style={{ color: theme.primaryColor }}>View Resume</Text>
+        <Text style={{ color: !alternate ? theme.primaryColor : theme.secondaryColor }}>View Resume</Text>
       </TouchableOpacity>
 
       <Modal

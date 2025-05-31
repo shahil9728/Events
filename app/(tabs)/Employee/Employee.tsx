@@ -4,7 +4,7 @@ import { supabase } from '../../../lib/supabase';
 import { Text } from '@rneui/themed'
 import { useTheme } from '@/app/ThemeContext';
 import { NavigationProps } from '@/app/RootLayoutHelpers';
-import { getRandomImageKey } from '../utils';
+import { getRandomImageFromKey } from '../utils';
 import IconwithContainer from '@/components/IconwithContainer';
 import { useSelector } from 'react-redux';
 import FreelancerCard from '@/components/FreelancerCard';
@@ -13,6 +13,9 @@ import Loader from '@/components/Loader';
 import { OperationType } from '@/app/globalConstants';
 import useExitAppOnBackPress from '@/hooks/useExitAppOnBackPress';
 import { UserRole } from '../employeeConstants';
+import { ActivityIndicator } from 'react-native-paper';
+
+const pageSize = 10;
 
 export default function Employee({ navigation }: NavigationProps) {
     useExitAppOnBackPress();
@@ -27,41 +30,57 @@ export default function Employee({ navigation }: NavigationProps) {
     const [isLoading, setIsLoading] = React.useState(false);
     const [requestStatus, setRequestStatus] = React.useState('pending');
     const [requestid, setRequestId] = React.useState('');
+    const [page, setPage] = useState(1);
+    const [isFetchingMore, setIsFetchingMore] = useState(false);
+
+
+    const fetchEvents = async (page = 1) => {
+        const from = (page - 1) * pageSize;
+        const to = from + pageSize - 1;
+
+        const { data, error } = await supabase
+            .from('events')
+            .select('*')
+            .range(from, to);
+
+
+        if (error) {
+            console.log(error);
+            return false;
+        }
+        // Filter events based on the employee roles
+        const userRoles = accountInfo.role.split(",").map((role: string) => role.trim());
+        const filteredEvents = data?.filter(event => {
+            const freelancerRoles = event.metadata.freelancer;
+            return freelancerRoles.some((position: { role: string; price: number }) =>
+                userRoles.includes(position.role)
+            );
+        }) || [];
+
+        const { data: data1, error: error1 } = await supabase
+            .from("employee_to_manager")
+            .select("*")
+            .eq("employee_id", accountInfo.employee_id)
+            .eq("req_status", "pending")
+            .eq("request_initiator", UserRole.EMPLOYEE);
+
+        if (error1) {
+            console.log(error1);
+            return false;
+        }
+        const pendingEventIds = data1?.map(d => d.event_id) || [];
+        const finalFiltered = filteredEvents.filter(event => !pendingEventIds.includes(event.id));
+        setEvents(prev => page === 1 ? finalFiltered : [...prev, ...finalFiltered]);
+        return true;
+    };
 
     useEffect(() => {
-        setEventsLoading(true);
-        const fetchEvents = async () => {
-            const { data, error } = await supabase
-                .from('events')
-                .select('*')
-
-            if (error) {
-                console.log(error);
-            } else {
-                // Filter events based on the employee roles
-                const userRoles = accountInfo.role.split(",").map((role: string) => role.trim());
-                const filteredEvents = data.filter(event => {
-                    const freelancerRoles = event.metadata.freelancer;
-                    return freelancerRoles.some((position: { role: string; price: number }) =>
-                        userRoles.includes(position.role)
-                    );
-                });
-
-                const { data: data1, error } = await supabase.from("employee_to_manager").select("*").eq("employee_id", accountInfo.employee_id).eq("req_status", "pending").eq("request_initiator", "EMPLOYEE");
-
-                if (error) {
-                    console.log(error);
-                } else {
-                    const pendingRequests = data1.map((d: any) => d.event_id);
-                    setEvents(filteredEvents.filter((event: any) => {
-                        return !pendingRequests.includes(event.id);
-                    }));
-                }
-
-            }
+        const loadEvents = async () => {
+            setEventsLoading(true);
+            await fetchEvents(1);
             setEventsLoading(false);
-        };
-        fetchEvents();
+        }
+        loadEvents();
     }, [])
 
     useEffect(() => {
@@ -136,12 +155,13 @@ export default function Employee({ navigation }: NavigationProps) {
             .upsert(updates);
         if (error) {
             console.log(error);
+            showSnackbar('Error sending request', 'error');
         } else {
             console.log(data);
             setRequestStatus('sent');
+            showSnackbar('Request Sent Successfully', 'success');
         }
         setIsLoading(false);
-        showSnackbar('Request Sent Successfully', 'success');
     }
 
 
@@ -189,7 +209,7 @@ export default function Employee({ navigation }: NavigationProps) {
                                                     ...item,
                                                     metadata: {
                                                         ...item.metadata,
-                                                        image: item.metadata?.image || getRandomImageKey(),
+                                                        image: item.metadata?.image,
                                                         category: item.metadata?.category || "Wedding",
                                                     },
                                                 },
@@ -199,9 +219,22 @@ export default function Employee({ navigation }: NavigationProps) {
                                         onSubmit={handleRequest}
                                         requestStatus={requestStatus}
                                         requestId={requestid}
+
                                     />
                                 )}
                                 keyExtractor={(_, index) => index.toString()}
+                                onEndReachedThreshold={0.5}
+                                onEndReached={() => {
+                                    if (!isFetchingMore) {
+                                        setIsFetchingMore(true);
+                                        const nextPage = page + 1;
+                                        fetchEvents(nextPage).then(() => {
+                                            setPage(nextPage);
+                                            setIsFetchingMore(false);
+                                        });
+                                    }
+                                }}
+                                ListFooterComponent={isFetchingMore ? <ActivityIndicator color="#ffffff" /> : null}
                             />
                         }
                     </>)}
