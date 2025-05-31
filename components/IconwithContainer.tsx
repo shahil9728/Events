@@ -1,3 +1,4 @@
+import { ICONTYPE } from '@/app/globalConstants';
 import { useTheme } from '@/app/ThemeContext';
 import { Icon } from '@rneui/themed'
 import React from 'react'
@@ -18,7 +19,7 @@ const IconwithContainer: React.FC<IconwithContainerProps> = ({ iconName = 'chevr
     return (
         <TouchableOpacity style={styles.IconContainer} onPress={onPress}>
             {children ? children : (
-                <Icon name={iconName} type='ionicon' color={iconColor ?? theme.headingColor} />
+                <Icon name={iconName} type={ICONTYPE.IONICON} color={iconColor ?? theme.headingColor} />
             )}
         </TouchableOpacity>
     )

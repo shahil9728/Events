@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     Modal,
     Pressable,
@@ -9,6 +9,7 @@ import {
     TouchableOpacity,
     ActivityIndicator,
     Animated,
+    BackHandler,
 } from 'react-native';
 import ChipsWithText from './ChipsWithText';
 import { getRandomProfileImage } from '@/app/(tabs)/utils';
@@ -16,6 +17,7 @@ import { useTheme } from '@/app/ThemeContext';
 import { StyleSheet } from 'react-native';
 import { employeeDetails, HospitalityRolesObject } from '@/app/(tabs)/employeeConstants';
 import PdfModalView from './PdfModalView';
+import { useFocusEffect } from 'expo-router';
 
 interface ProfileModalProps {
     isVisible: boolean;
@@ -43,7 +45,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
     loading = false,
     setShowWarning,
 }) => {
-
     const { theme } = useTheme();
     const styles = useStyles(theme);
     const profileImage = useMemo(() => getRandomProfileImage(), []);
@@ -66,10 +67,13 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
         }).start(() => setVisible(false));
     };
 
-    // Trigger the modal open animation when `isVisible` changes
-    if (isVisible) {
-        showModal();
-    }
+    useEffect(() => {
+        if (isVisible) {
+            showModal();
+        } else {
+            hideModal();
+        }
+    }, [isVisible]);
 
 
 
@@ -100,10 +104,28 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                     >
 
                         <View style={styles.profileSection}>
-                            <Image
-                                source={{ uri: item.profile_url || profileImage }}
-                                style={styles.profileImage}
-                            />
+                            <Animated.View
+                                style={{
+                                    opacity: modalSlide.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: [0, 1],
+                                    }),
+                                    transform: [
+                                        {
+                                            scale: modalSlide.interpolate({
+                                                inputRange: [0, 1],
+                                                outputRange: [0.9, 1],
+                                            }),
+                                        },
+                                    ],
+                                }}
+                            >
+                                <Image
+                                    source={{ uri: item.profile_url || profileImage }}
+                                    style={styles.profileImage}
+                                    resizeMode="cover"
+                                />
+                            </Animated.View>
                             {/* <View style={styles.iconsContainer}>
                                 <TouchableOpacity
                                     style={[styles.iconButton, alternate && { backgroundColor: '#565555' }]}
@@ -191,7 +213,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                         <View style={styles.experienceContainer}>
                             <View style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                                 <Text style={[styles.experienceTitle, !alternate && { color: '#F1F0E6' }]}>About</Text>
-                                <PdfModalView resumeUrl={item.resume_url ?? ''} />
+                                <PdfModalView resumeUrl={item.resume_url ?? ''} alternate={alternate} />
                             </View>
                             <Text style={[styles.description, !alternate && { color: '#F1F0E6' }]}>
                                 {item.bio}

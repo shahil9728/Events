@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { View, StyleSheet, FlatList, Alert, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native'
+import { View, StyleSheet, FlatList, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native'
 import { supabase } from '../../../lib/supabase'
 import { Text, Icon } from '@rneui/themed'
 import Loader from '@/components/Loader'
@@ -12,13 +12,15 @@ import { useDispatch, useSelector } from 'react-redux'
 import EDialog from '@/components/EDialog'
 import { setEvents } from '@/app/redux/Manager/Events/eventActions'
 import FilterSheet from '@/components/FilterDialog'
-import { HospitalityRoles } from '../employeeConstants'
+import { HospitalityRoles, UserRole } from '../employeeConstants'
 import { FILTER_CATEGORIES } from '../managerConstants'
 import useExitAppOnBackPress from '@/hooks/useExitAppOnBackPress'
 
 LogBox.ignoreLogs([
     'VirtualizedLists should never be nested',
 ]);
+
+const pageSize = 10;
 
 export default function ManagerDashboard({ navigation }: ManagerHeaderScreenProps) {
     useExitAppOnBackPress();
@@ -39,14 +41,22 @@ export default function ManagerDashboard({ navigation }: ManagerHeaderScreenProp
     const openDialog = () => setVisible(true);
     const closeDialog = () => setVisible(false);
     const disaptch = useDispatch();
-
+    const [page, setPage] = useState(1);
+    const [isFetchingMore, setIsFetchingMore] = useState(false);
 
     useEffect(() => {
-        fetchEmployees()
+        const load = async () => {
+            setdataLoading(true);
+            await fetchEmployees(1);
+            setdataLoading(false);
+        };
+        load();
     }, [])
 
-    async function fetchEmployees() {
-        setdataLoading(true);
+    const fetchEmployees = async (page = 1) => {
+        const from = (page - 1) * pageSize;
+        const to = from + pageSize - 1;
+
         try {
             // const { data, error } = await supabase
             //     .from('employee_to_manager')
@@ -54,22 +64,28 @@ export default function ManagerDashboard({ navigation }: ManagerHeaderScreenProp
             //     .or(
             //         'req_status.eq.accepted, and(req_status.eq.pending, manager_id.eq.' + accountInfo.manager_id + ')'
             //     );
-            let query = supabase.from('employees').select('*');
+            let query = supabase
+                .from('employees')
+                .select('*')
+                .range(from, to);
+
             // const pendingEmployeeIds = data?.map(d => d.employee_id) || [];
             // if (pendingEmployeeIds.length > 0) {
             //     query = query.not('id', 'in', `(${pendingEmployeeIds.map(id => `"${id}"`).join(',')})`);
             // }
 
             const { data: employees, error: empError } = await query;
-            console.log("Manager, Error occurred while fetching employees", empError)
-            if (employees) setEmployees(employees)
+            if (empError) {
+                console.log("Manager, Error occurred while fetching employees", empError)
+                return
+            }
+
+            if (employees) setEmployees(prev => page === 1 ? employees : [...prev, ...employees])
+            return true;
         } catch (error) {
             if (error instanceof Error) {
-                Alert.alert(error.message)
+                console.log("Manager. Error during fetching employeesa", error.message)
             }
-        }
-        finally {
-            setdataLoading(false)
         }
     }
 
@@ -101,7 +117,6 @@ export default function ManagerDashboard({ navigation }: ManagerHeaderScreenProp
             setEventLoading(false);
             closeDialog();
         } else {
-            console.log("Events", events)
             setEventLoading(false);
             if (events) setEventsList(events);
             disaptch(setEvents(events));
@@ -109,8 +124,16 @@ export default function ManagerDashboard({ navigation }: ManagerHeaderScreenProp
         };
     }
 
+    function getCommonRole(employee: any, event: any) {
+        const employeeRoles = employee?.role.split(",").map((val: string) => val.trim());
+        const eventRoles = event?.metadata?.freelancer.map((x: any) => x?.role) || [];
+        console.log("Employee Roles", employeeRoles, eventRoles)
+        var roles = employeeRoles.filter((role: string) => eventRoles.includes(role));
+        return roles;
+    }
     // Send hire request after manager selects an event
     const onSend = async () => {
+        console.log("Selected Event", selectedEvent, selectedEmployee)
         if (!selectedEvent) {
             showSnackbar('Please select an event to send hire request.', 'warning');
             return;
@@ -139,8 +162,9 @@ export default function ManagerDashboard({ navigation }: ManagerHeaderScreenProp
                 req_status: 'pending',
                 event_title: selectedEvent?.title,
                 event_id: selectedEvent?.id,
+                role_id: getCommonRole(selectedEmployee, selectedEvent).join(","),
                 event_metadata: { ...selectedEvent?.metadata, startDate: selectedEvent?.startDate, endDate: selectedEvent?.endDate },
-                request_initiator: 'MANAGER',
+                request_initiator: UserRole.MANAGER,
             };
 
             const { data, error } = await supabase
@@ -214,29 +238,27 @@ export default function ManagerDashboard({ navigation }: ManagerHeaderScreenProp
 
     return (
         <View style={styles.container}>
+            <View style={styles.header}>
+                <Text style={styles.headerTitle}>Search freelancers</Text>
+                <View style={{ gap: 5 }}>
+                    <TouchableOpacity style={styles.filterButton} onPress={() => setFilterVisible(true)}
+                    >
+                        <Icon name="tune" size={24} color="#060605" />
+                        <Text style={styles.filterText}>Filters</Text>
+                        {Object.keys(appliedFilters).length > 0 &&
+                            !Object.values(appliedFilters).every(arr => arr.length === 0) && (
+                                <View style={styles.badge}>
+                                    <Text style={styles.badgeText}>{Object.keys(appliedFilters).length}</Text>
+                                </View>
+                            )}
+                    </TouchableOpacity>
+                </View>
+            </View>
             <ScrollView
-                contentContainerStyle={{ flexGrow: 1, height: "auto" }}
+                contentContainerStyle={{ flexGrow: 1, height: "auto", paddingBottom: 10 }}
                 nestedScrollEnabled={true}
                 keyboardShouldPersistTaps="handled"
             >
-                <View style={styles.header}>
-                    <Text style={styles.headerTitle}>Search freelancers</Text>
-                    <View style={{ gap: 5 }}>
-                        <TouchableOpacity style={styles.filterButton} onPress={() => setFilterVisible(true)}
-                        >
-                            <Icon name="tune" size={24} color="#060605" />
-                            <Text style={styles.filterText}>Filters</Text>
-                            {Object.keys(appliedFilters).length > 0 &&
-                                !Object.values(appliedFilters).every(arr => arr.length === 0) && (
-                                    <View style={styles.badge}>
-                                        <Text style={styles.badgeText}>{Object.keys(appliedFilters).length}</Text>
-                                    </View>
-                                )}
-
-                        </TouchableOpacity>
-
-                    </View>
-                </View>
                 {dataloading ? <Loader /> : (
                     <>
                         {getFilteredEmployees().length === 0 &&
@@ -256,7 +278,20 @@ export default function ManagerDashboard({ navigation }: ManagerHeaderScreenProp
                                 />
                             )}
                             keyExtractor={(item) => item.id}
-                            nestedScrollEnabled={true} />
+                            nestedScrollEnabled={true}
+                            onEndReachedThreshold={0.5}
+                            onEndReached={() => {
+                                if (!isFetchingMore) {
+                                    setIsFetchingMore(true);
+                                    const nextPage = page + 1;
+                                    fetchEmployees(nextPage).then(() => {
+                                        setPage(nextPage);
+                                        setIsFetchingMore(false);
+                                    });
+                                }
+                            }}
+                            ListFooterComponent={isFetchingMore ? <ActivityIndicator color="#ffffff" /> : null}
+                        />
                     </>
                 )}
             </ScrollView>

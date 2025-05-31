@@ -1,4 +1,4 @@
-import { HospitalityRolesObject, ImageKey, imageMap } from "./employeeConstants";
+import { HospitalityRolesObject, ImageKey, ImageKey1, imageMap, imageRequireMap } from "./employeeConstants";
 import { Text } from "react-native";
 import { supabase } from "@/lib/supabase";
 import { Dispatch } from "redux";
@@ -47,6 +47,12 @@ export const formatRoles = (role: string | string[] | undefined): React.ReactNod
         </>
     );
 };
+
+export const getRandomImageKey = (): ImageKey1 => {
+    const keys = Object.keys(imageRequireMap) as ImageKey1[];
+    const randomIndex = Math.floor(Math.random() * keys.length);
+    return keys[randomIndex];
+}
 
 
 export const getRandomImageFromKey = (key: ImageKey): any => {
