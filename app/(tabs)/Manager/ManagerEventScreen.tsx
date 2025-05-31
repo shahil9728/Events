@@ -8,7 +8,7 @@ import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, ActivityIn
 import { getFriendlydate, getLabelFromList } from '../utils';
 import Collapsible from 'react-native-collapsible';
 import { FlatList } from 'react-native';
-import { EVENT_CATEGORIES, ImageKey1, imageMap, imageRequireMap } from '../employeeConstants';
+import { EVENT_CATEGORIES, ImageKey1, imageRequireMap } from '../employeeConstants';
 import EmployeeProfileModalCard from '@/components/EmployeeProfileModal';
 import { ICONTYPE } from '@/app/globalConstants';
 
@@ -124,7 +124,7 @@ const ManagerEventScreen = ({ navigation, route }: ManagerEventScreenProps) => {
         <ScrollView style={styles.container}>
             <View style={styles.imageContainer}>
                 <Image
-                    source={imageRequireMap[metadata?.image as ImageKey1] || imageMap['Wedding'][0]}
+                    source={imageRequireMap[metadata?.image as ImageKey1] || (Array.isArray(imageRequireMap['wedding']) ? imageRequireMap['wedding'][0] : undefined)}
                     style={styles.eventImage}
                 />
             </View>

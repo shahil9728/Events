@@ -7,7 +7,7 @@ import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { getFriendlydate, getLabelFromList } from '../utils';
-import { EVENT_CATEGORIES, HospitalityRolesObject, ImageKey, ImageKey1, imageMap, imageRequireMap, UserRole } from '../employeeConstants';
+import { EVENT_CATEGORIES, HospitalityRolesObject, ImageKey1, imageRequireMap, UserRole } from '../employeeConstants';
 import { OperationType } from '@/app/globalConstants';
 
 const EmployeeEventScreen = ({ navigation, route }: EmployeeEventScreenProps) => {

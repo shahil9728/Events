@@ -4,7 +4,6 @@ import { supabase } from '../../../lib/supabase';
 import { Text } from '@rneui/themed'
 import { useTheme } from '@/app/ThemeContext';
 import { NavigationProps } from '@/app/RootLayoutHelpers';
-import { getRandomImageFromKey } from '../utils';
 import IconwithContainer from '@/components/IconwithContainer';
 import { useSelector } from 'react-redux';
 import FreelancerCard from '@/components/FreelancerCard';

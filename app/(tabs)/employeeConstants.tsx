@@ -1,20 +1,3 @@
-export type ImageKey = 'Wedding' | 'Concert' | 'Comedy';
-
-export const imageMap: Record<ImageKey, any[]> = {
-    'Wedding': [
-        require('../../assets/images/wedding.jpg'),
-        require('../../assets/images/wedding1.png'),
-        require('../../assets/images/wedding2.png'),
-    ],
-    'Concert': [
-        require('../../assets/images/concert.png'),
-    ],
-    'Comedy': [
-        require('../../assets/images/comedy.png'),
-        require('../../assets/images/comedy1.png'),
-    ],
-};
-
 export type ImageKey1 =
     | 'wedding'
     | 'wedding1'
