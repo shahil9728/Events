@@ -5,14 +5,14 @@ import { useSnackbar } from '@/components/SnackBar';
 import { supabase } from '@/lib/supabase';
 import { Calendar } from 'react-native-calendars';
 import Loader from '@/components/Loader';
-import { AddEventProps, ManagerHeaderScreenProps } from '@/app/RootLayoutHelpers';
+import { AddEventProp } from '@/app/RootLayoutHelpers';
 import { useSelector } from 'react-redux';
 import DropdownComponent from '@/components/DropdownComponent';
-import { EVENT_CATEGORIES, HospitalityRoles, HospitalityRolesObject, ImageKey } from '../employeeConstants';
+import { EVENT_CATEGORIES, HospitalityRoles, HospitalityRolesObject } from '../employeeConstants';
 import { useTheme } from '@/app/ThemeContext';
 import { OperationType } from '@/app/globalConstants';
 import { Freelancer } from '@/app/BaseClasses';
-import { getRandomImageFromKey } from '../utils';
+import { getRandomImageKey } from '../utils';
 
 interface DayProps {
     dateString: string;
@@ -134,7 +134,6 @@ const AddEvent = ({ navigation, route }: AddEventProps) => {
                 markedDates: range,
             });
         }
-        console.log(selectedDates);
     };
 
     // Helper function to mark the range between two dates
@@ -222,12 +221,14 @@ const AddEvent = ({ navigation, route }: AddEventProps) => {
                 description: eventDescription,
                 freelancer: selectedFreelancers,
                 eventCategory: eventCategory,
-                image: getRandomImageFromKey(eventCategory as ImageKey || 'Wedding'),
+                image: getRandomImageKey(),
             },
             created_at: new Date(),
         };
+        console.log('boom', event);
 
         try {
+            console.log('Submitting event with data:', event);
             const { error } = mode === OperationType.UPDATE
                 ? await supabase.from('events').update(event).eq('id', eventData?.id)
                 : await supabase.from('events').insert(event);
@@ -235,6 +236,10 @@ const AddEvent = ({ navigation, route }: AddEventProps) => {
             if (error) {
                 throw new Error(error.message);
             }
+            console.log('Submitting event with data:', {
+                eventName, error
+            })
+
 
             showSnackbar(`Event ${mode === OperationType.UPDATE ? 'Updated' : 'Created'} Successfully!`, 'success');
             navigation.navigate('RenderManagerTabs', { activeTab: 'ManagerMyEvents' });
