@@ -4,7 +4,14 @@ export type ImageKey1 =
     | 'wedding2'
     | 'concert'
     | 'comedy'
-    | 'comedy1';
+    | 'comedy1'
+    | 'conference'
+    | 'birthday'
+    | 'exhibition'
+    | 'productLaunch'
+    | 'privateDinner'
+    | 'award'
+    | 'fashion';
 
 
 export const imageRequireMap: Record<ImageKey1, number> = {
@@ -14,6 +21,13 @@ export const imageRequireMap: Record<ImageKey1, number> = {
     concert: require('../../assets/images/concert.png'),
     comedy: require('../../assets/images/comedy.png'),
     comedy1: require('../../assets/images/comedy1.png'),
+    conference: require('../../assets/images/conference.png'),
+    birthday: require('../../assets/images/birthday.png'),
+    exhibition: require('../../assets/images/exhibition.png'),
+    productLaunch: require('../../assets/images/productLaunch.png'),
+    privateDinner: require('../../assets/images/privateDinner.png'),
+    award: require('../../assets/images/award.png'),
+    fashion: require('../../assets/images/fashion.png'),
 };
 
 export const GenderConstants = [

@@ -224,7 +224,7 @@ export default function Employee({ navigation }: NavigationProps) {
                                 keyExtractor={(_, index) => index.toString()}
                                 onEndReachedThreshold={0.5}
                                 onEndReached={() => {
-                                    if (!isFetchingMore) {
+                                    if (!isFetchingMore && filteredEvents.length >= pageSize) {
                                         setIsFetchingMore(true);
                                         const nextPage = page + 1;
                                         fetchEvents(nextPage).then(() => {
