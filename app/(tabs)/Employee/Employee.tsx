@@ -194,10 +194,12 @@ export default function Employee({ navigation }: NavigationProps) {
                                 <Text style={styles.emptyRow}>No events match your current skills</Text>
                                 <Text style={[styles.emptyRow, { fontSize: 12, marginTop: 2 }]}>Try enhancing your profile with more skills to unlock additional opportunities</Text>
                             </View>) :
+                            
                             <FlatList
                                 data={filteredEvents}
                                 renderItem={({ item, index }) => (
                                     <FreelancerCard
+                                    
                                         item={item}
                                         cardType="event"
                                         alternate={index % 2 === 0 ? false : true}
