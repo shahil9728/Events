@@ -39,12 +39,18 @@ import QuestionFinal from './(tabs)/Onboarding/Questions/QuestionFinal';
 import { Image, TouchableOpacity, View } from 'react-native';
 import { Icon } from '@rneui/themed';
 import { ICONTYPE, OperationType } from './globalConstants';
+import * as Sentry from "@sentry/react-native";
+
+Sentry.init({
+  dsn: "https://d3559d0823994858922f2c4ed755c639@app.glitchtip.com/12468",
+});
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<ManagerListBase>();
 const Tab1 = createBottomTabNavigator<EmployeeListBase>();
 
 export default function App() {
+    console.log("hii");
     const [appReady, setAppReady] = useState(false);
     const colorScheme = useColorScheme();
 

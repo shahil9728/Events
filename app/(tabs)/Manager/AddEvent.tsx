@@ -5,7 +5,7 @@ import { useSnackbar } from '@/components/SnackBar';
 import { supabase } from '@/lib/supabase';
 import { Calendar } from 'react-native-calendars';
 import Loader from '@/components/Loader';
-import { AddEventProp } from '@/app/RootLayoutHelpers';
+import { AddEventProps } from '@/app/RootLayoutHelpers';
 import { useSelector } from 'react-redux';
 import DropdownComponent from '@/components/DropdownComponent';
 import { EVENT_CATEGORIES, HospitalityRoles, HospitalityRolesObject } from '../employeeConstants';
