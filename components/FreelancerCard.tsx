@@ -11,6 +11,7 @@ import AnimatedPressable from './AnimatedPressable';
 import ChipsWithText from './ChipsWithText';
 import ProfileModal from './ProfileModal';
 import EmployeeProfileCard from './EmployeeProfileCard';
+import * as Sentry from "@sentry/react-native";
 
 type CardProps = {
     item: any;
@@ -51,7 +52,7 @@ const FreelancerCard = ({
                 console.warn('onSubmit is not defined.');
             }
         } catch (error) {
-            console.log(error);
+            Sentry.captureException("Error sending hire request: " + error);
             if (error instanceof Error) {
                 showSnackbar(String(error), 'error');
             } else {

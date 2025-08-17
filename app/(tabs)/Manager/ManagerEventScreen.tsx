@@ -11,7 +11,7 @@ import { FlatList } from 'react-native';
 import { EVENT_CATEGORIES, ImageKey1, imageRequireMap } from '../employeeConstants';
 import EmployeeProfileModalCard from '@/components/EmployeeProfileModal';
 import { ICONTYPE } from '@/app/globalConstants';
-
+import * as Sentry from "@sentry/react-native";
 
 const ManagerEventScreen = ({ navigation, route }: ManagerEventScreenProps) => {
     const {
@@ -48,7 +48,7 @@ const ManagerEventScreen = ({ navigation, route }: ManagerEventScreenProps) => {
             .select(`*,employee_details:employee_id(id,name,email)`)
             .eq('event_id', id);
         if (error) {
-            console.log(error);
+            Sentry.captureException("Error fetching employee data at Manager Event Screen: " + error.message);
         } else {
             if (data) {
                 setData(data);
@@ -64,10 +64,10 @@ const ManagerEventScreen = ({ navigation, route }: ManagerEventScreenProps) => {
         try {
             const { error } = await supabase.from("employee_to_manager").update({ req_status: status }).eq("employee_id", employee_id).eq("event_id", event_id);
             if (error) {
-                console.error(error);
+                Sentry.captureException("Error updating request status: " + error.message);
             }
         } catch (error) {
-            console.error('Error updating request status:', error);
+            Sentry.captureException("Error updating request status: " + (error as Error).message);
         } finally {
             setReqLoadingId(null);
             fetchEmployeeData();

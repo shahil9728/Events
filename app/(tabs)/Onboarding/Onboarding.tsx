@@ -14,6 +14,7 @@ import { setRole } from '@/app/redux/Employee/onboarding/onboardingActions';
 import { supabase } from '@/lib/supabase';
 import { setEmployeeId, setManagerId, updateManagerInfo } from '@/app/redux/Employee/accountInfo/accountInfoActions';
 import { UserRole } from '../employeeConstants';
+import * as Sentry from "@sentry/react-native";
 
 export default function OnBoarding({ navigation }: OnBoardingProps) {
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -38,10 +39,7 @@ export default function OnBoarding({ navigation }: OnBoardingProps) {
                 });
 
             if (error) {
-                console.log('Error saving user data:', error.message);
-            }
-            else {
-                console.log('Successfully saved user role data');
+                Sentry.captureException("Error saving user data: " + error.message);
             }
 
             navigation.navigate('ProfileUpdateScreen', { name1: onboardingUser.name });
@@ -64,14 +62,10 @@ export default function OnBoarding({ navigation }: OnBoardingProps) {
             });
 
             if (error1) {
-                console.log('Error saving manager data:', error1.message);
+                Sentry.captureException("Error saving manager data: " + error1.message);
             }
-            else {
-                console.log('Successfully saved manager data');
-            }
-
             if (error) {
-                console.log('Error saving user data:', error.message);
+                Sentry.captureException("Error saving user data: " + error.message);
             }
             else {
                 dispatch(updateManagerInfo({
@@ -79,7 +73,6 @@ export default function OnBoarding({ navigation }: OnBoardingProps) {
                     email: onboardingUser.email,
                     name: onboardingUser.name,
                 }));
-                console.log('Successfully saved user role data');
             }
 
             navigation.navigate('Onboarding1');

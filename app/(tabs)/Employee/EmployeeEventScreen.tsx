@@ -9,6 +9,7 @@ import { useSelector } from 'react-redux';
 import { getFriendlydate, getLabelFromList } from '../utils';
 import { EVENT_CATEGORIES, HospitalityRolesObject, ImageKey1, imageRequireMap, UserRole } from '../employeeConstants';
 import { OperationType } from '@/app/globalConstants';
+import * as Sentry from "@sentry/react-native";
 
 const EmployeeEventScreen = ({ navigation, route }: EmployeeEventScreenProps) => {
     const {
@@ -82,9 +83,8 @@ const EmployeeEventScreen = ({ navigation, route }: EmployeeEventScreenProps) =>
             .from('employee_to_manager')
             .upsert(updates);
         if (error) {
-            console.log(error);
+            Sentry.captureException("Error sending request: " + error);
         } else {
-            console.log(data);
             setRequestStatus('sent');
         }
         setIsLoading(false);

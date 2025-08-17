@@ -14,6 +14,7 @@ import useExitAppOnBackPress from '@/hooks/useExitAppOnBackPress';
 import { supabase } from '@/lib/supabase';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateManagerInfo } from '@/app/redux/Employee/accountInfo/accountInfoActions';
+import * as Sentry from "@sentry/react-native";
 
 export default function OnBoarding1({ navigation }: OnBoarding1Props) {
     const { theme } = useTheme();
@@ -33,10 +34,7 @@ export default function OnBoarding1({ navigation }: OnBoarding1Props) {
         });
 
         if (error1) {
-            console.log('Error saving manager data:', error1.message);
-        }
-        else {
-            console.log('Successfully saved manager data');
+            Sentry.captureException("Error saving manager data: " + error1.message);
         }
 
         if (option === 'event') {

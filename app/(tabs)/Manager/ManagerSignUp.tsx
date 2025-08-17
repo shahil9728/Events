@@ -4,7 +4,8 @@ import { Button, Input } from '@rneui/themed';
 import { supabase } from '@/lib/supabase';
 import Loader from '@/components/Loader';
 import { NavigationProps } from '../../RootLayoutHelpers';
-
+import * as Sentry from "@sentry/react-native";
+import { useSnackbar } from '@/components/SnackBar';
 
 export default function ManagerSignUp({ navigation }: NavigationProps) {
     const [email, setEmail] = useState('');
@@ -12,6 +13,7 @@ export default function ManagerSignUp({ navigation }: NavigationProps) {
     const [companyName, setcompanyName] = useState('');
     const [name, setname] = useState('');
     const [loading, setLoading] = useState(false);
+    const { showSnackbar } = useSnackbar();
 
     async function signUpWithEmail() {
         setLoading(true);
@@ -29,11 +31,8 @@ export default function ManagerSignUp({ navigation }: NavigationProps) {
         });
 
         if (error) {
-            Alert.alert(error.message)
-            console.log('Error signup data:', error.message);
-        }
-        else {
-            console.log('Successfully signed up');
+            showSnackbar(error.message, 'error');
+            Sentry.captureException("Error signing up manager: " + error.message);
         }
 
         const { error: userError } = await supabase
@@ -57,16 +56,11 @@ export default function ManagerSignUp({ navigation }: NavigationProps) {
             });
 
         if (managerError) {
-            console.log('Error saving managers data:', managerError.message);
-        }
-        else {
-            console.log('Successfully saved the manager');
+            Sentry.captureException("Error saving manager data: " + managerError.message);
         }
 
         if (userError) {
-            console.log('Error saving users data:', userError.message);
-        } else {
-            console.log('Successfully saved the user');
+            Sentry.captureException("Error saving user data: " + userError.message);
         }
 
         const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -75,13 +69,11 @@ export default function ManagerSignUp({ navigation }: NavigationProps) {
         });
 
         if (signInError) {
-            Alert.alert('Error signing in', signInError.message);
+            Sentry.captureException("Error signing in: " + signInError.message);
+            showSnackbar(signInError.message, 'error');
             setLoading(false);
             return;
-        } else {
-            console.log('Successfully signed in');
-        }
-
+        } 
         navigation.navigate('ManagerDashboard');
         setLoading(false);
     }

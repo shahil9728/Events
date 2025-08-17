@@ -17,6 +17,7 @@ import MultiSelectWithChips from '@/components/MultiSelectWithChips';
 import useExitAppOnBackPress from '@/hooks/useExitAppOnBackPress';
 import * as FileSystem from 'expo-file-system';
 import ResumeUploader from '@/components/ResumeUploader';
+import * as Sentry from "@sentry/react-native";
 
 const ProfileUpdateScreen = ({ route, navigation }: ProfileUpdateScreenRouteProp) => {
     const { theme } = useTheme();
@@ -56,7 +57,7 @@ const ProfileUpdateScreen = ({ route, navigation }: ProfileUpdateScreenRouteProp
                     return;
                 }
             } catch (err) {
-                console.error("Error checking file size:", err);
+                Sentry.captureException("Error checking file size: " + (err as Error).message);
                 return;
             }
 
@@ -88,7 +89,6 @@ const ProfileUpdateScreen = ({ route, navigation }: ProfileUpdateScreenRouteProp
             if (!result.canceled) {
                 const fileUri = result.assets[0].uri;
                 const fileName = `profile_${name}.jpg`;
-                console.log("Uploading image to S3...");
                 const fileUrl = await uploadToS3(fileUri, fileName, onboardingUser.id, "profile") as string | null;
 
                 if (fileUrl) {
@@ -99,12 +99,11 @@ const ProfileUpdateScreen = ({ route, navigation }: ProfileUpdateScreenRouteProp
                 }
             }
         } catch (e) {
-            console.log("Error occurred", e);
+            Sentry.captureException("Error occurred: " + e);
         }
     }
 
     const handleNext = async () => {
-        console.log('Profile data:', name, location, salary, selectedSkills, resume, profileImage);
         if (!name || !location || !salary || selectedSkills.length === 0 || !resume) {
             showSnackbar('Please fill all the fields.', 'error');
             return;
@@ -114,7 +113,6 @@ const ProfileUpdateScreen = ({ route, navigation }: ProfileUpdateScreenRouteProp
         setIsLoading(true);
         let id = ""
         if (onboardingUser.id == "") {
-            console.log('No onboarding user found. Using session user id');
             const { data: { session } } = await supabase.auth.getSession();
             id = session?.user?.id ?? "";
         } else {
@@ -141,10 +139,9 @@ const ProfileUpdateScreen = ({ route, navigation }: ProfileUpdateScreenRouteProp
             .upsert(payload);
 
         if (profileError) {
-            console.log('Error saving profile data:', profileError.message);
+            Sentry.captureException("Error saving profile data: " + profileError.message);
         } else {
             dispatch(updateEmployeeInfo(payload));
-            console.log('Profile data saved successfully');
             navigation.navigate('Questions');
         }
         setIsLoading(false);

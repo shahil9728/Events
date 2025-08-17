@@ -11,6 +11,7 @@ import { setId, setOnboardingData } from '@/app/redux/Employee/onboarding/onboar
 import { Ionicons } from '@expo/vector-icons'
 import EDialog from '@/components/EDialog'
 import ETextInputContainer from '@/components/ETextInputContainer'
+import * as Sentry from "@sentry/react-native";
 
 export default function SignUp({ navigation }: NavigationProps) {
     const [name, setName] = useState('')
@@ -57,10 +58,7 @@ export default function SignUp({ navigation }: NavigationProps) {
                 });
 
             if (error) {
-                console.log('Error saving user data:', error.message);
-            }
-            else {
-                console.log('Successfully saved user data');
+                Sentry.captureException("Error saving user data: " + error.message);
             }
             navigation.navigate('Phone')
         }

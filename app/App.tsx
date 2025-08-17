@@ -50,7 +50,6 @@ const Tab = createBottomTabNavigator<ManagerListBase>();
 const Tab1 = createBottomTabNavigator<EmployeeListBase>();
 
 export default function App() {
-    console.log("hii");
     const [appReady, setAppReady] = useState(false);
     const colorScheme = useColorScheme();
 

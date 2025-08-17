@@ -13,6 +13,7 @@ import { OperationType } from '@/app/globalConstants';
 import useExitAppOnBackPress from '@/hooks/useExitAppOnBackPress';
 import { UserRole } from '../employeeConstants';
 import { ActivityIndicator } from 'react-native-paper';
+import * as Sentry from "@sentry/react-native";
 
 const pageSize = 10;
 
@@ -44,7 +45,7 @@ export default function Employee({ navigation }: NavigationProps) {
 
 
         if (error) {
-            console.log(error);
+            Sentry.captureException("Error fetching events for employee: " + error);
             return false;
         }
         // Filter events based on the employee roles
@@ -64,7 +65,7 @@ export default function Employee({ navigation }: NavigationProps) {
             .eq("request_initiator", UserRole.EMPLOYEE);
 
         if (error1) {
-            console.log(error1);
+            Sentry.captureException("Error fetching pending events for employee: " + error1);
             return false;
         }
         const pendingEventIds = data1?.map(d => d.event_id) || [];
@@ -153,10 +154,9 @@ export default function Employee({ navigation }: NavigationProps) {
             .from('employee_to_manager')
             .upsert(updates);
         if (error) {
-            console.log(error);
             showSnackbar('Error sending request', 'error');
+            Sentry.captureException("Error sending request: " + error);
         } else {
-            console.log(data);
             setRequestStatus('sent');
             showSnackbar('Request Sent Successfully', 'success');
         }

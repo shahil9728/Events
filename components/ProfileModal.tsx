@@ -17,7 +17,6 @@ import { useTheme } from '@/app/ThemeContext';
 import { StyleSheet } from 'react-native';
 import { employeeDetails, HospitalityRolesObject } from '@/app/(tabs)/employeeConstants';
 import PdfModalView from './PdfModalView';
-import { useFocusEffect } from 'expo-router';
 
 interface ProfileModalProps {
     isVisible: boolean;

@@ -6,6 +6,8 @@ import { supabase } from '@/lib/supabase';
 import { uploadToS3 } from '../../../helpers/aws';
 import Loader from '@/components/Loader';
 import { NavigationProps } from '../../RootLayoutHelpers';
+import * as Sentry from "@sentry/react-native";
+import { useSnackbar } from '@/components/SnackBar';
 
 export default function EmployeeSignUp({ navigation }: NavigationProps) {
     const [name, setName] = useState('');
@@ -16,6 +18,7 @@ export default function EmployeeSignUp({ navigation }: NavigationProps) {
     const [password, setPassword] = useState('');
     const [resume, setResume] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const { showSnackbar } = useSnackbar();
 
     async function signUpWithEmail() {
         setLoading(true);
@@ -52,10 +55,11 @@ export default function EmployeeSignUp({ navigation }: NavigationProps) {
                 });
 
             if (error) {
-                Alert.alert('Error saving user data:', error.message);
+                Sentry.captureException("Error saving user data: " + error.message);
+                showSnackbar('Error saving user data: ' + error.message, 'error');
             }
             else {
-                console.log('Successfully saved user data');
+                Sentry.captureMessage('Successfully saved user data');
             }
 
             const { error: profileError } = await supabase
@@ -86,10 +90,7 @@ export default function EmployeeSignUp({ navigation }: NavigationProps) {
                 Alert.alert('Error signing in', signInError.message);
                 setLoading(false);
                 return;
-            } else {
-                console.log('Successfully signed in');
-            }
-
+            } 
             navigation.navigate('EmployeeSettings');
         }
         setLoading(false);
@@ -101,13 +102,11 @@ export default function EmployeeSignUp({ navigation }: NavigationProps) {
             copyToCacheDirectory: true,
             multiple: false,
         });
-        console.log(result);
         if (result.assets && result.assets[0].uri != "") {
             const file = new File([result.assets[0].uri], "resume.pdf", { type: "application/pdf" });
             const fileUri = result.assets[0].uri;
             const fileName = `resume_${Date.now()}.pdf`; // Unique name for the file
 
-            console.log("Uploading resume to S3...");
             // const fileUrl = await uploadToS3(fileUri, fileName) as string | null;
 
             // if (fileUrl) {

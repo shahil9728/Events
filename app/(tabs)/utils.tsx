@@ -3,6 +3,7 @@ import { Text } from "react-native";
 import { supabase } from "@/lib/supabase";
 import { Dispatch } from "redux";
 import { setEmployeeId, setManagerId } from "../redux/Employee/accountInfo/accountInfoActions";
+import * as Sentry from "@sentry/react-native";
 
 export function getFriendlydate(date: string) {
     return new Date(date).toLocaleDateString('en-US', { day: 'numeric', month: 'long' });
@@ -56,7 +57,6 @@ export const getRandomImageKey = (): ImageKey1 => {
 
 export const getManagerId = async (accountInfo: any, dispatch: Dispatch) => {
     if (accountInfo?.manager_id) {
-        console.log("b", accountInfo.manager_id);
         return accountInfo.manager_id;
     }
 
@@ -70,7 +70,7 @@ export const getManagerId = async (accountInfo: any, dispatch: Dispatch) => {
         dispatch(setManagerId(managerId));
         return managerId;
     } catch (err) {
-        console.error('Error fetching manager ID:', err);
+        Sentry.captureException("Error fetching manager ID: " + (err as Error).message);
         return null;
     }
 };
@@ -90,7 +90,7 @@ export const getEmployeeId = async (accountInfo: any, dispatch: Dispatch) => {
         dispatch(setEmployeeId(employeeId));
         return employeeId;
     } catch (err) {
-        console.error('Error fetching employee ID:', err);
+        Sentry.captureException("Error fetching employee ID: " + (err as Error).message);
         return null;
     }
 };

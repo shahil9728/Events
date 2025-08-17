@@ -204,7 +204,6 @@ const AddEvent = ({ navigation, route }: AddEventProps) => {
 
     const handleSubmit = async () => {
         if (!eventName || !eventLocation || !eventDescription || !selectedDates.startDate || !selectedDates.endDate || !selectedFreelancers.length) {
-            console.log(selectedFreelancers);
             showSnackbar('Please fill all fields!', 'error');
             return;
         }
@@ -225,10 +224,8 @@ const AddEvent = ({ navigation, route }: AddEventProps) => {
             },
             created_at: new Date(),
         };
-        console.log('boom', event);
 
         try {
-            console.log('Submitting event with data:', event);
             const { error } = mode === OperationType.UPDATE
                 ? await supabase.from('events').update(event).eq('id', eventData?.id)
                 : await supabase.from('events').insert(event);
@@ -236,10 +233,6 @@ const AddEvent = ({ navigation, route }: AddEventProps) => {
             if (error) {
                 throw new Error(error.message);
             }
-            console.log('Submitting event with data:', {
-                eventName, error
-            })
-
 
             showSnackbar(`Event ${mode === OperationType.UPDATE ? 'Updated' : 'Created'} Successfully!`, 'success');
             navigation.navigate('RenderManagerTabs', { activeTab: 'ManagerMyEvents' });

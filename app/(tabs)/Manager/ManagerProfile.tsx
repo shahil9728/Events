@@ -8,6 +8,7 @@ import ProfileImage from '@/components/ProfileImage';
 import { updateManagerInfo } from '@/app/redux/Employee/accountInfo/accountInfoActions';
 import ETextInputContainer2 from '@/components/ETextInputContainer2';
 import ButtonWithLoader from '@/components/ButtonWithLoader';
+import * as Sentry from "@sentry/react-native";
 
 type ManagerAccountInfo = {
     name: string;
@@ -34,7 +35,6 @@ const ManagerProfile = () => {
             showSnackbar('No changes to update', 'warning');
             return;
         }
-        console.log('Updating profile...');
         try {
             setLoading(true);
             const updates = {
@@ -48,11 +48,10 @@ const ManagerProfile = () => {
             let { error } = await supabase.from('managers').upsert(updates);
 
             if (error) {
-                console.error('Error updating profile:', error);
+                Sentry.captureException("Error updating profile: " + (error as Error).message);
                 throw error;
             }
             dispatch(updateManagerInfo(updates));
-            console.log('Profile updated successfully!');
             showSnackbar('Profile updated successfully!', 'success');
         } catch (error) {
             if (error instanceof Error) {

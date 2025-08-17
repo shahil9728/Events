@@ -12,6 +12,7 @@ import { UserRole } from '../employeeConstants';
 import AnimatedPressable from '@/components/AnimatedPressable';
 import { NavigationProps } from '@/app/RootLayoutHelpers';
 import { OperationType } from '@/app/globalConstants';
+import * as Sentry from "@sentry/react-native";
 
 const EmployeeInbox: React.FC<NavigationProps> = ({ navigation }) => {
     const [requests, setRequests] = useState<any[]>([]);
@@ -35,14 +36,13 @@ const EmployeeInbox: React.FC<NavigationProps> = ({ navigation }) => {
         try {
             const { data, error } = await supabase.from("employee_to_manager").select("*").eq("employee_id", accountInfo.employee_id);
             if (data) {
-                console.log("Employee Inbox", data);
                 setRequests(data);
                 setFilteredRequests(data);
             } else {
-                console.error(error);
+                Sentry.captureException("Error fetching requests: " + error.message);
             }
         } catch (error) {
-            console.error('Error fetching requests:', error);
+            Sentry.captureException("Error fetching requests: " + (error as Error).message);
         } finally {
             setIsLoading(false);
         }
@@ -85,10 +85,10 @@ const EmployeeInbox: React.FC<NavigationProps> = ({ navigation }) => {
                 .eq("id", requestId);
 
             if (error) {
-                console.error(error);
+                Sentry.captureException("Error updating request status: " + error.message);
             }
         } catch (error) {
-            console.error('Error updating request status:', error);
+            Sentry.captureException("Error updating request status: " + (error as Error).message);
         } finally {
             fetchRequests();
             showSnackbar(`Request ${status} successfully!`, "success");
@@ -96,7 +96,6 @@ const EmployeeInbox: React.FC<NavigationProps> = ({ navigation }) => {
     };
 
     const renderRequest = ({ item }: { item: employee_to_manager_row }) => {
-        console.log("Item", item);
         return (
             <AnimatedPressable onPress={() => {
                 const fullEventRow: event_row = {
@@ -160,7 +159,6 @@ const EmployeeInbox: React.FC<NavigationProps> = ({ navigation }) => {
             </AnimatedPressable >
         )
     };
-    console.log("Filtered Requests", requests, filteredRequests);
     return (
         <View style={styles.container}>
             <View style={styles.headerCont}>

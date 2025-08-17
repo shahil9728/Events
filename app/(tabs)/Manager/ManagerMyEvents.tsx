@@ -10,6 +10,7 @@ import { Icon } from "@rneui/themed";
 import EDialog from "@/components/EDialog";
 import { ICONTYPE, OperationType } from "@/app/globalConstants";
 import AnimatedPressable from "@/components/AnimatedPressable";
+import * as Sentry from "@sentry/react-native";
 
 export default function ManagerMyEvents({ navigation }: ManagerHeaderScreenProps) {
     const { theme } = useTheme();
@@ -31,12 +32,12 @@ export default function ManagerMyEvents({ navigation }: ManagerHeaderScreenProps
                 .eq('manager_id', manager_id);
 
             if (error) {
-                console.error("Error fetching events:", error);
+                Sentry.captureException("Error fetching events: " + error.message);
             } else {
                 setEvents(data);
             }
         } catch (err) {
-            console.error("Unexpected error fetching events:", err);
+            Sentry.captureException("Unexpected error fetching events: " + (err as Error).message);
         } finally {
             setIsLoading(false);
         }
@@ -53,12 +54,12 @@ export default function ManagerMyEvents({ navigation }: ManagerHeaderScreenProps
                 .delete()
                 .eq('id', id);
             if (error) {
-                console.log(error);
+                Sentry.captureException("Error deleting event at Manager My Events: " + error.message);
             } else {
                 setEvents(events.filter((event) => event.id !== id));
             }
         } catch (error) {
-            console.error('Error deleting event:', error);
+            Sentry.captureException("Unexpected error deleting event at Manager My Events: " + error);
         }
         finally {
             setWarningDialog(false);

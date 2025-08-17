@@ -15,6 +15,7 @@ import ButtonWithLoader from '@/components/ButtonWithLoader';
 import ETextInputContainer2 from '@/components/ETextInputContainer2';
 import MultiSelectWithChips from '@/components/MultiSelectWithChips';
 import ResumeUploader from '@/components/ResumeUploader';
+import * as Sentry from "@sentry/react-native";
 
 const EmployeeProfile = () => {
     const [loading, setLoading] = useState(false);
@@ -42,7 +43,6 @@ const EmployeeProfile = () => {
             showSnackbar('No changes made.', 'warning');
             return;
         }
-        console.log('Updating profile...');
         try {
             setLoading(true);
             const updates = {
@@ -67,10 +67,9 @@ const EmployeeProfile = () => {
                 throw error;
             }
             showSnackbar('Profile updated successfully!', 'success');
-            console.log('Profile updated successfully!');
         } catch (error) {
             if (error instanceof Error) {
-                console.log(error.message);
+                Sentry.captureException("Error updating employee profile: " + error.message);
             }
         } finally {
             setLoading(false);
@@ -97,11 +96,9 @@ const EmployeeProfile = () => {
             const fileName = `resume_${currentValues.name}.pdf`;
 
             if (currentValues.resume_url) {
-                console.log("Deleting existing resume from S3...");  
                 await deleteFromS3(currentValues.resume_url);
             }
 
-            console.log("Uploading new resume to S3...");
             const fileUrl = await uploadToS3(fileUri, fileName, accountInfo.employee_id, "resumes") as string | null;
 
             if (fileUrl) {
@@ -135,7 +132,6 @@ const EmployeeProfile = () => {
             if (!result.canceled) {
                 const fileUri = result.assets[0].uri;
                 const fileName = `profile_${currentValues.name}.jpg`;
-                console.log("Uploading image to S3...");
                 const fileUrl = await uploadToS3(fileUri, fileName, accountInfo.employee_id, "profile") as string | null;
 
                 if (fileUrl) {
@@ -152,7 +148,7 @@ const EmployeeProfile = () => {
                 }
             }
         } catch (e) {
-            console.log("Error occurred", e);
+            Sentry.captureException("Error uploading profile image: " + e);
         }
     }
 

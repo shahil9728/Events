@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setNumber, setNumberVerified } from '@/app/redux/Employee/onboarding/onboardingActions';
 import useExitAppOnBackPress from '@/hooks/useExitAppOnBackPress';
 import { generateOtp } from '../../utils';
+import * as Sentry from "@sentry/react-native";
 
 const Phone = ({ navigation }: NavigationProps) => {
     useExitAppOnBackPress();
@@ -28,7 +29,6 @@ const Phone = ({ navigation }: NavigationProps) => {
             const otp = generateOtp();
             setGeneratedOtp(otp);
             dispatch(setNumber(contactNumber));
-            console.log(otp);
             const response = await axios.post(
                 "https://n4u6j24rib.execute-api.ap-south-1.amazonaws.com/TwillService/sendmessage",
                 { "phoneNumber": "+91" + contactNumber, "otp": otp },
@@ -46,7 +46,7 @@ const Phone = ({ navigation }: NavigationProps) => {
             }
             setCurrentScreen(2);
         } catch (err) {
-            console.log("Error in Phone ", err);
+            Sentry.captureException("Error sending OTP: " + err);
             showSnackbar("Error sending OTP. Please try again.", 'error');
         } finally {
             setIsLoading(false);
@@ -64,7 +64,6 @@ const Phone = ({ navigation }: NavigationProps) => {
                 // showSnackbar("OTP verified successfully.", 'success');
                 let id = ""
                 if (onboardingUser.id == "") {
-                    console.log('No onboarding user found. Using session user id');
                     const { data: { session } } = await supabase.auth.getSession();
                     id = session?.user?.id ?? "";
                 } else {
@@ -80,11 +79,10 @@ const Phone = ({ navigation }: NavigationProps) => {
                     });
 
                 if (error) {
-                    console.log('Error saving user data:', error.message);
+                    Sentry.captureException("Error saving user data: " + error.message);
                 }
                 else {
                     dispatch(setNumberVerified(true));
-                    console.log('Successfully saved user phone data');
                 }
                 navigation.navigate('PhoneFinal');
             }
@@ -122,7 +120,6 @@ const Phone = ({ navigation }: NavigationProps) => {
         }
         else if (currentScreen === 2) {
             // Verify OTP
-            console.log(otp);
             if (otp.some(digit => digit === '')) {
                 showSnackbar("Please enter a valid OTP.", 'error');
                 return;

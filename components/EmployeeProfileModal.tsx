@@ -12,6 +12,7 @@ import EmployeeProfileCard from './EmployeeProfileCard';
 import { supabase } from '@/lib/supabase';
 import PdfModalView from './PdfModalView';
 import { useTheme } from '@/app/ThemeContext';
+import * as Sentry from "@sentry/react-native";
 
 type Props = {
   employee_id: string;
@@ -37,7 +38,7 @@ const EmployeeProfileModalCard: React.FC<Props> = ({ isVisible, setVisible, empl
       .single();
 
     if (error) {
-      console.error('Error fetching employee:', error.message);
+      Sentry.captureException("Error fetching employee data: " + (error as Error).message);
       setError('Failed to load employee profile.');
     } else {
       setEmployeeData(data);

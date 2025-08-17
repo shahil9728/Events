@@ -15,6 +15,7 @@ import FilterSheet from '@/components/FilterDialog'
 import { HospitalityRoles, UserRole } from '../employeeConstants'
 import { FILTER_CATEGORIES } from '../managerConstants'
 import useExitAppOnBackPress from '@/hooks/useExitAppOnBackPress'
+import * as Sentry from "@sentry/react-native";
 
 LogBox.ignoreLogs([
     'VirtualizedLists should never be nested',
@@ -76,7 +77,7 @@ export default function ManagerDashboard({ navigation }: ManagerHeaderScreenProp
 
             const { data: employees, error: empError } = await query;
             if (empError) {
-                console.log("Manager, Error occurred while fetching employees", empError)
+                Sentry.captureException("Manager, Error occurred while fetching employees: " + empError.message);
                 return
             }
 
@@ -84,7 +85,7 @@ export default function ManagerDashboard({ navigation }: ManagerHeaderScreenProp
             return true;
         } catch (error) {
             if (error instanceof Error) {
-                console.log("Manager. Error during fetching employeesa", error.message)
+                Sentry.captureException("Manager. Error during fetching employees: " + error.message);
             }
         }
     }
@@ -127,13 +128,11 @@ export default function ManagerDashboard({ navigation }: ManagerHeaderScreenProp
     function getCommonRole(employee: any, event: any) {
         const employeeRoles = employee?.role.split(",").map((val: string) => val.trim());
         const eventRoles = event?.metadata?.freelancer.map((x: any) => x?.role) || [];
-        console.log("Employee Roles", employeeRoles, eventRoles)
         var roles = employeeRoles.filter((role: string) => eventRoles.includes(role));
         return roles;
     }
     // Send hire request after manager selects an event
     const onSend = async () => {
-        console.log("Selected Event", selectedEvent, selectedEmployee)
         if (!selectedEvent) {
             showSnackbar('Please select an event to send hire request.', 'warning');
             return;
@@ -177,7 +176,7 @@ export default function ManagerDashboard({ navigation }: ManagerHeaderScreenProp
             fetchEmployees();
             closeDialog();
         } catch (err) {
-            console.error('Error sending hire request:', err);
+            Sentry.captureException("Failed to send hire request: " + (err as Error).message);
             showSnackbar('Failed to send hire request.', 'error');
         }
         finally {
@@ -206,7 +205,6 @@ export default function ManagerDashboard({ navigation }: ManagerHeaderScreenProp
                     });
                 }
 
-                console.log("Employee Value", employeeValue, key, filterValue, category)
                 if (type === 'option' && multiple) {
                     // For arrays like skills: check if any selected value is in the employee's list
                     if (
@@ -219,7 +217,6 @@ export default function ManagerDashboard({ navigation }: ManagerHeaderScreenProp
                 else if (type === 'range') {
                     const [min, max] = filterValue[0].split(",").map(Number); // Ensure values are numbers
                     const numericValue = Number(employeeValue);
-                    console.log("Range Filter", numericValue, min, max)
                     if (isNaN(numericValue) || numericValue < min || numericValue > max) {
                         return false;
                     }
@@ -332,7 +329,6 @@ export default function ManagerDashboard({ navigation }: ManagerHeaderScreenProp
                 )}
             </EDialog>
             <FilterSheet visible={isFilterVisible} onClose={() => setFilterVisible(false)} onApply={(filters) => {
-                console.log('Selected Filters:', filters);
                 setAppliedFilters(filters);
             }}
             />

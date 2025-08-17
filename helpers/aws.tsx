@@ -1,4 +1,5 @@
 import AWS from 'aws-sdk';
+import * as Sentry from "@sentry/react-native";
 
 // AWS Configuration
 const S3_BUCKET = 'userresume9728';
@@ -43,16 +44,15 @@ export const uploadToS3 = async (fileUri: string, fileName: string, userId: stri
         return new Promise((resolve, reject) => {
             s3.upload(params, (err: Error, data: AWS.S3.ManagedUpload.SendData) => {
                 if (err) {
-                    console.error('Error uploading to S3:', err.message);
+                    Sentry.captureException("Error uploading to S3: " + err.message);
                     reject(err.message);
                 } else {
-                    console.log('File uploaded successfully:', data.Location);
                     resolve(data.Location); // Return the public file URL
                 }
             });
         });
     } catch (error) {
-        console.error('Error preparing file for S3 upload:', (error as Error).message);
+        Sentry.captureException("Failed to upload file to S3: " + (error as Error).message);
         throw new Error('Failed to upload file to S3.');
     }
 };
@@ -73,16 +73,15 @@ export const deleteFromS3 = async (fileUrl: string) => {
         return new Promise((resolve, reject) => {
             s3.deleteObject(params, (err, data) => {
                 if (err) {
-                    console.error('Error deleting from S3:', err.message);
+                    Sentry.captureException("Error deleting from S3: " + err.message);
                     reject(err.message);
                 } else {
-                    console.log('File deleted successfully:', data);
                     resolve(undefined);
                 }
             });
         });
     } catch (error) {
-        console.error('Error preparing file for S3 deletion:', (error as Error).message);
+        Sentry.captureException("Failed to delete file from S3: " + (error as Error).message);
         throw new Error('Failed to delete file from S3.');
     }
 };

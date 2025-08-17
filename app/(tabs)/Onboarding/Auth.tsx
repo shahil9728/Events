@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import EDialog from '@/components/EDialog';
 import { ICONTYPE } from '@/app/globalConstants';
 import ETextInputContainer from '@/components/ETextInputContainer';
+import * as Sentry from "@sentry/react-native";
 
 export default function Auth({ navigation }: NavigationProps) {
     const [email, setEmail] = useState('')
@@ -62,11 +63,11 @@ export default function Auth({ navigation }: NavigationProps) {
             .maybeSingle()
 
         if (error) {
-            console.error("Error fetching user data:", error.message);
+            Sentry.captureException("Error fetching user type: " + (error as Error).message);
             return;
         }
         if (data == null) {
-            console.log("No user data found. Please sign up first.");
+            Sentry.captureMessage("No user data found. Please sign up first.");
             // handleDialog("No user data found. Please sign up first.");
             return;
         }
@@ -103,7 +104,7 @@ export default function Auth({ navigation }: NavigationProps) {
                         }
                     } catch (error) {
                         if (error instanceof Error) {
-                            console.log("Error at Employee Settings ", error.message);
+                            Sentry.captureException("Error at Employee Settings: " + error.message);
                         }
                     } finally {
                         setLoading(false);
@@ -126,7 +127,7 @@ export default function Auth({ navigation }: NavigationProps) {
                         }
                     } catch (error) {
                         if (error instanceof Error) {
-                            console.log("Error at Manager Settings ", error.message);
+                            Sentry.captureException("Error at Manager Settings: " + error.message);
                         }
                     } finally {
                         setLoading(false);
@@ -167,7 +168,7 @@ export default function Auth({ navigation }: NavigationProps) {
             password: password,
         })
         if (error) {
-            console.log("error1", error);
+            Sentry.captureException("Error signing in: " + error.message);
             showSnackbar(error.message, "error")
         }
         setLoading(false)
