@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, Platform, Modal, Button, Pressable } from 'react-native';
-import { Icon } from '@rneui/themed';
 import { useSnackbar } from '@/components/SnackBar';
 import { supabase } from '@/lib/supabase';
 import { Calendar } from 'react-native-calendars';
@@ -13,6 +12,7 @@ import { useTheme } from '@/app/ThemeContext';
 import { OperationType } from '@/app/globalConstants';
 import { Freelancer } from '@/app/BaseClasses';
 import { getRandomImageKey } from '../utils';
+import Icon from '@/helpers/Icon';
 
 interface DayProps {
     dateString: string;

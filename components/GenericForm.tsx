@@ -1,5 +1,5 @@
 import { useTheme } from '@/app/ThemeContext'
-import { Icon } from '@rneui/themed';
+import Icon from '@/helpers/Icon';
 import React from 'react'
 import { StyleSheet, View, Text, ActivityIndicator, Keyboard } from 'react-native'
 import IconwithContainer from './IconwithContainer';

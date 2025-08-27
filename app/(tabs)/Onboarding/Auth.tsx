@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Keyboard, StyleSheet, View, Text, TextInput, TouchableWithoutFeedback, TouchableOpacity, Alert, Image } from 'react-native'
 import { supabase } from '../../../lib/supabase'
-import { Button, Icon } from '@rneui/themed'
+import Icon from '@/helpers/Icon';
 import { User } from '@supabase/supabase-js';
 import Loader from '../../../components/Loader'
 import { NavigationProps } from '@/app/RootLayoutHelpers';
@@ -14,6 +14,8 @@ import EDialog from '@/components/EDialog';
 import { ICONTYPE } from '@/app/globalConstants';
 import ETextInputContainer from '@/components/ETextInputContainer';
 import * as Sentry from "@sentry/react-native";
+import AppButton from '@/components/AppButton';
+import { useColorScheme } from 'react-native';
 
 export default function Auth({ navigation }: NavigationProps) {
     const [email, setEmail] = useState('')
@@ -28,6 +30,7 @@ export default function Auth({ navigation }: NavigationProps) {
     const styles = createStyles(theme);
     const dispatch = useDispatch();
     const { showSnackbar } = useSnackbar();
+    const colorScheme = useColorScheme();
 
     useEffect(() => {
         const fetchSession = async () => {
@@ -180,19 +183,35 @@ export default function Auth({ navigation }: NavigationProps) {
                 <>
                     <Image source={require('../../../assets/images/logo1.png')} style={{ width: 250, height: 100, marginBottom: 24 }} />
                     <View style={styles.verticallySpaced}>
-                        <Button
+                        <AppButton
                             title="Continue with Google"
                             disabled={loading}
-                            onPress={() => handleDialog("Sorry this feature is not available yet. Please use the email and password to sign in.")}
-                            icon={<Icon name='google' type={ICONTYPE.FONTAWESOME} size={20} color={theme.secondaryColor} />}
+                            loading={loading}
+                            onPress={() =>
+                                handleDialog(
+                                    "Sorry this feature is not available yet. Please use the email and password to sign in."
+                                )
+                            }
+                            icon={
+                                <Icon
+                                    name="google"
+                                    type={ICONTYPE.FONTAWESOME}
+                                    size={20}
+                                    color={theme.secondaryColor}
+                                />
+                            }
                             buttonStyle={styles.socialButtonStyle}
                             containerStyle={styles.socialButtonContainer}
                             titleStyle={styles.socialButtonTitle}
                         />
-                        <Button
+                        <AppButton
                             title="Continue with Facebook"
+                            onPress={() =>
+                                handleDialog(
+                                    "Sorry this feature is not available yet. Please use the email and password to sign in."
+                                )
+                            }
                             disabled={loading}
-                            onPress={() => setShowDialog(true)}
                             icon={<Icon name='facebook' type={ICONTYPE.FONTAWESOME} size={20} color={theme.secondaryColor} />}
                             buttonStyle={styles.socialButtonStyle}
                             containerStyle={styles.socialButtonContainer}
@@ -230,7 +249,7 @@ export default function Auth({ navigation }: NavigationProps) {
                                 />
                             </TouchableOpacity>
                         </ETextInputContainer>
-                        <Button
+                        <AppButton
                             title="Sign In"
                             disabled={loading}
                             onPress={() => signInWithEmail()}
@@ -255,7 +274,8 @@ export default function Auth({ navigation }: NavigationProps) {
                         <Text style={{ color: theme.lightGray2 }}>
                             Don't have an account?
                         </Text>
-                        <Button title="Create account" disabled={loading}
+                        <AppButton
+                            title="Create account" disabled={loading}
                             onPress={() => navigation.navigate('SignUp')}
                             titleStyle={{
                                 color: theme.primaryColor1,
@@ -263,7 +283,11 @@ export default function Auth({ navigation }: NavigationProps) {
                             buttonStyle={{
                                 backgroundColor: "transparent",
                             }}
-                            TouchableComponent={TouchableWithoutFeedback}
+                            containerStyle={{
+                                width: "55%",
+                                display: "flex",
+                                alignItems: 'flex-end',
+                            }}
                         />
                     </View>
                     <EDialog
@@ -289,6 +313,7 @@ const createStyles = (theme: any) => StyleSheet.create({
         padding: 12,
         paddingHorizontal: 20,
         height: "100%",
+        backgroundColor: theme.backgroundColor,
     },
     textInputCont: {
         padding: 10,

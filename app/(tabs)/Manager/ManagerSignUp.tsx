@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, TouchableOpacity, View, Text, Keyboard } from 'react-native';
-import { Button, Input } from '@rneui/themed';
+import React, { useState } from 'react';
+import { Alert, StyleSheet,  View,  Keyboard } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import Loader from '@/components/Loader';
 import { NavigationProps } from '../../RootLayoutHelpers';
 import * as Sentry from "@sentry/react-native";
 import { useSnackbar } from '@/components/SnackBar';
+import AppButton from '@/components/AppButton';
+import AppInput from '@/components/AppInput';
 
 export default function ManagerSignUp({ navigation }: NavigationProps) {
     const [email, setEmail] = useState('');
@@ -90,7 +91,7 @@ export default function ManagerSignUp({ navigation }: NavigationProps) {
         <>
             {loading && <Loader />}
             <View style={styles.container}>
-                <Input
+                <AppInput
                     label="Email"
                     onChangeText={(text) => setEmail(text)}
                     value={email}
@@ -98,21 +99,21 @@ export default function ManagerSignUp({ navigation }: NavigationProps) {
                     autoCapitalize="none"
                     inputStyle={{ color: '#ffffff' }}
                 />
-                <Input
+                <AppInput
                     label="Name"
                     onChangeText={(text) => setname(text)}
                     value={name}
                     placeholder="Name"
                     inputStyle={{ color: '#ffffff' }}
                 />
-                <Input
+                <AppInput
                     label="Company Name"
                     onChangeText={(text) => setcompanyName(text)}
                     value={companyName}
                     placeholder="Company Name"
                     inputStyle={{ color: '#ffffff' }}
                 />
-                <Input
+                <AppInput
                     label="Password"
                     onChangeText={(text) => setPassword(text)}
                     value={password}
@@ -122,8 +123,8 @@ export default function ManagerSignUp({ navigation }: NavigationProps) {
                     inputStyle={{ color: '#ffffff' }}
                 />
                 <View style={styles.btncontainer}>
-                    <Button title="Back to Home" onPress={handleGoBack} />
-                    <Button title="Sign Up" onPress={signUpWithEmail} />
+                    <AppButton title="Back to Home" onPress={handleGoBack} />
+                    <AppButton title="Sign Up" onPress={signUpWithEmail} />
                 </View>
             </View>
         </>

@@ -2,7 +2,7 @@ import { ManagerEventScreenProps } from '@/app/RootLayoutHelpers';
 import { useTheme } from '@/app/ThemeContext';
 import { useSnackbar } from '@/components/SnackBar';
 import { supabase } from '@/lib/supabase';
-import { Icon } from '@rneui/themed';
+import Icon from '@/helpers/Icon';
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { getFriendlydate, getLabelFromList } from '../utils';

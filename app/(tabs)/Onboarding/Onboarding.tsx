@@ -4,7 +4,6 @@ import {
     StyleSheet,
     ScrollView,
 } from 'react-native';
-import { Button } from '@rneui/themed';
 import { useTheme } from '../../ThemeContext';
 import { OnBoardingProps } from '@/app/RootLayoutHelpers';
 import { ActivityIndicator } from 'react-native';
@@ -15,6 +14,7 @@ import { supabase } from '@/lib/supabase';
 import { setEmployeeId, setManagerId, updateManagerInfo } from '@/app/redux/Employee/accountInfo/accountInfoActions';
 import { UserRole } from '../employeeConstants';
 import * as Sentry from "@sentry/react-native";
+import AppButton from '@/components/AppButton';
 
 export default function OnBoarding({ navigation }: OnBoardingProps) {
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -85,7 +85,7 @@ export default function OnBoarding({ navigation }: OnBoardingProps) {
         <ScrollView contentContainerStyle={styles.container} style={{ flex: 1 }}
         >
             <View style={styles.buttonRow}>
-                <Button
+                <AppButton
                     title="Find Event"
                     titleStyle={{
                         color: theme.secondaryColor,
@@ -113,7 +113,7 @@ export default function OnBoarding({ navigation }: OnBoardingProps) {
                     )}
                     iconPosition='right'
                 />
-                <Button
+                <AppButton
                     title="Find Talent"
                     titleStyle={{
                         color: theme.secondaryColor,

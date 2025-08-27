@@ -1,7 +1,6 @@
 import { ManagerHeaderScreenProps } from '@/app/RootLayoutHelpers'
-import { Icon } from '@rneui/themed'
 import React from 'react'
-import { StyleSheet, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 
 const ManagerHeader = ({ navigation }: ManagerHeaderScreenProps) => {
     return (

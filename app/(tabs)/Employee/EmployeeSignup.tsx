@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Alert, StyleSheet, View, ScrollView, Keyboard } from 'react-native';
-import { Button, Input } from '@rneui/themed';
 import * as DocumentPicker from 'expo-document-picker'; // For resume upload
 import { supabase } from '@/lib/supabase';
 import { uploadToS3 } from '../../../helpers/aws';
@@ -8,6 +7,8 @@ import Loader from '@/components/Loader';
 import { NavigationProps } from '../../RootLayoutHelpers';
 import * as Sentry from "@sentry/react-native";
 import { useSnackbar } from '@/components/SnackBar';
+import AppButton from '@/components/AppButton';
+import AppInput from '@/components/AppInput';
 
 export default function EmployeeSignUp({ navigation }: NavigationProps) {
     const [name, setName] = useState('');
@@ -128,35 +129,35 @@ export default function EmployeeSignUp({ navigation }: NavigationProps) {
         >
             {loading && <Loader />}
             <View style={styles.container}>
-                <Input
+                <AppInput
                     label="Name"
                     onChangeText={(text) => setName(text)}
                     value={name}
                     placeholder="Full Name"
                     inputStyle={{ color: '#ffffff' }}
                 />
-                <Input
+                <AppInput
                     label="Contat Number"
                     onChangeText={(text) => setNumber(text)}
                     value={number}
                     placeholder="Contat Number"
                     inputStyle={{ color: '#ffffff' }}
                 />
-                <Input
+                <AppInput
                     label="Role"
                     onChangeText={(text) => setRole(text)}
                     value={role}
                     placeholder="Role"
                     inputStyle={{ color: '#ffffff' }}
                 />
-                <Input
+                <AppInput
                     label="Expected Salary"
                     onChangeText={(text) => setSalary(text)}
                     value={salary}
                     placeholder="Salary"
                     inputStyle={{ color: '#ffffff' }}
                 />
-                <Input
+                <AppInput
                     label="Email"
                     onChangeText={(text) => setEmail(text)}
                     value={email}
@@ -164,7 +165,7 @@ export default function EmployeeSignUp({ navigation }: NavigationProps) {
                     autoCapitalize="none"
                     inputStyle={{ color: '#ffffff' }}
                 />
-                <Input
+                <AppInput
                     label="Password"
                     onChangeText={(text) => setPassword(text)}
                     value={password}
@@ -173,14 +174,14 @@ export default function EmployeeSignUp({ navigation }: NavigationProps) {
                     autoCapitalize="none"
                     inputStyle={{ color: '#ffffff' }}
                 />
-                <Button
+                <AppButton
                     title={resume ? "Resume Uploaded" : "Upload Resume (PDF)"}
                     onPress={handleResumeUpload}
                     buttonStyle={{ marginBottom: 20 }}
                 />
                 <View style={styles.btncontainer}>
-                    <Button title="Back to Home" onPress={() => { if (navigation.canGoBack()) { navigation.goBack() } else { navigation.navigate('Auth') } }} />
-                    <Button title="Sign Up" disabled={loading} onPress={signUpWithEmail} />
+                    <AppButton title="Back to Home" onPress={() => { if (navigation.canGoBack()) { navigation.goBack() } else { navigation.navigate('Auth') } }} />
+                    <AppButton title="Sign Up" disabled={loading} onPress={signUpWithEmail} />
                 </View>
             </View>
         </ScrollView>

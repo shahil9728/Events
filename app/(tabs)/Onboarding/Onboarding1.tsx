@@ -5,7 +5,6 @@ import {
     StyleSheet,
     ScrollView,
 } from 'react-native';
-import { Button } from '@rneui/themed';
 import { useTheme } from '../../ThemeContext';
 import { OnBoarding1Props } from '@/app/RootLayoutHelpers';
 import IconwithContainer from '@/components/IconwithContainer';
@@ -15,6 +14,7 @@ import { supabase } from '@/lib/supabase';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateManagerInfo } from '@/app/redux/Employee/accountInfo/accountInfoActions';
 import * as Sentry from "@sentry/react-native";
+import AppButton from '@/components/AppButton';
 
 export default function OnBoarding1({ navigation }: OnBoarding1Props) {
     const { theme } = useTheme();
@@ -49,7 +49,7 @@ export default function OnBoarding1({ navigation }: OnBoarding1Props) {
         <ScrollView contentContainerStyle={styles.container}>
             <View style={styles.formContainer}>
                 <Text style={styles.heading}>Let's Get Started</Text>
-                <Button
+                <AppButton
                     title="Create Event"
                     titleStyle={{
                         color: theme.secondaryColor,
@@ -73,7 +73,7 @@ export default function OnBoarding1({ navigation }: OnBoarding1Props) {
                     }
                     iconPosition='right'
                 />
-                <Button
+                <AppButton
                     title="Browse Profiles"
                     titleStyle={{
                         color: theme.secondaryColor,

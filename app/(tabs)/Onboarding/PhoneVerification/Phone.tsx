@@ -1,67 +1,95 @@
 import GenericForm from '@/components/GenericForm'
-import React, { useState } from 'react'
-import { Keyboard, TouchableWithoutFeedback, View } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { View } from 'react-native'
 import Phone1 from './Phone1';
 import Phone2 from './Phone2';
 import { useSnackbar } from '@/components/SnackBar';
-import axios from 'axios';
 import { NavigationProps } from '@/app/RootLayoutHelpers';
 import { supabase } from '@/lib/supabase';
 import { useDispatch, useSelector } from 'react-redux';
 import { setNumber, setNumberVerified } from '@/app/redux/Employee/onboarding/onboardingActions';
 import useExitAppOnBackPress from '@/hooks/useExitAppOnBackPress';
-import { generateOtp } from '../../utils';
 import * as Sentry from "@sentry/react-native";
+const authToken = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJDLThFODUwMURGQkUyMzQ2MSIsImlhdCI6MTc1NjI3Mzk5MSwiZXhwIjoxOTEzOTUzOTkxfQ.-eslZtedd5OmFZ9C6MTH5Wc5RREx7uyjj7H-V71DjOE7Adepy98-VsgxAhfEGivRtjk5zfNVbqXdbmFYuW4fwA";
 
 const Phone = ({ navigation }: NavigationProps) => {
     useExitAppOnBackPress();
     const [currentScreen, setCurrentScreen] = useState(1);
     const [contactNumber, setContactNumber] = React.useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']);
+    const [otp, setOtp] = useState<string[]>(['', '', '', '']);
+    const [otpValidationId, setOtpValidationId] = useState("");
     const { showSnackbar } = useSnackbar();
     const dispatch = useDispatch();
-    const [generatedOtp, setGeneratedOtp] = useState('');
     const onboardingUser = useSelector((state: any) => state.onboardingReducer);
+    console.log("user", onboardingUser);
 
-    const sendOtp = async (contactNumber: string) => {
+    const sendOtp = async (contactNumber: string): Promise<{ data?: any }> => {
         try {
-            const otp = generateOtp();
-            setGeneratedOtp(otp);
             dispatch(setNumber(contactNumber));
-            const response = await axios.post(
-                "https://n4u6j24rib.execute-api.ap-south-1.amazonaws.com/TwillService/sendmessage",
-                { "phoneNumber": "+91" + contactNumber, "otp": otp },
-                {
-                    headers: {
-                        "Content-Type": "application/json",
+            try {
+                const response = await fetch(
+                    `https://cpaas.messagecentral.com/verification/v3/send?countryCode=91&customerId=C-8E8501DFBE23461&senderId=UTOMOB&flowType=SMS&mobileNumber=${contactNumber}`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            authToken: authToken,
+                        },
                     }
-                }
-            );
-            if (!response.data.success) {
-                showSnackbar("Error sending OTP. Please try again.", 'error');
-                return;
-            } else {
-                showSnackbar("OTP sent successfully.", 'success');
+                );
+
+                const data = await response.json();
+                console.log("data", data)
+                setCurrentScreen(2);
+                return data;
+            } catch (error) {
+                Sentry.captureException("Error sending OTP: " + error);
+                return {};
             }
-            setCurrentScreen(2);
+
+            // Twilio OTP process
+            // const response = await axios.post(
+            //     "https://n4u6j24rib.execute-api.ap-south-1.amazonaws.com/TwillService/sendmessage",
+            //     { "phoneNumber": "+91" + contactNumber, "otp": otp },
+            //     {
+            //         headers: {
+            //             "Content-Type": "application/json",
+            //         }
+            //     }
+            // );
+            // if (!response.data.success) {
+            //     showSnackbar("Error sending OTP. Please try again.", 'error');
+            //     return;
+            // } else {
+            //     showSnackbar("OTP sent successfully.", 'success');
+            // }
         } catch (err) {
             Sentry.captureException("Error sending OTP: " + err);
             showSnackbar("Error sending OTP. Please try again.", 'error');
+            return {};
         } finally {
             setIsLoading(false);
         }
     };
 
 
-    const verifyOtp = async () => {
+    const verifyOtp = async (verificationId: string, mobileNumber: string) => {
         setIsLoading(true);
         const otpCode = otp.join('');
         try {
-            if (otpCode !== generatedOtp) {
-                showSnackbar("Error verifying OTP. Please try again.", 'error');
-            } else {
-                // showSnackbar("OTP verified successfully.", 'success');
+            const response = await fetch(
+                `https://cpaas.messagecentral.com/verification/v3/validateOtp?countryCode=91&mobileNumber=${mobileNumber}&verificationId=${verificationId}&customerId=C-8E8501DFBE23461&code=${otpCode}`,
+                {
+                    method: "GET",
+                    headers: {
+                        authToken: authToken,
+                    },
+                }
+            );
+
+            const data = await response.json();
+            if (data?.message == "SUCCESS") {
                 let id = ""
                 if (onboardingUser.id == "") {
                     const { data: { session } } = await supabase.auth.getSession();
@@ -85,9 +113,14 @@ const Phone = ({ navigation }: NavigationProps) => {
                     dispatch(setNumberVerified(true));
                 }
                 navigation.navigate('PhoneFinal');
+
+            } else {
+                showSnackbar("Error validating OTP. Please try again.", 'error');
             }
-        } catch (err) {
+        } catch (error) {
+            console.log("Error verifying OTP: ", error);
             showSnackbar("Error verifying OTP. Please try again.", 'error');
+            throw error;
         } finally {
             setIsLoading(false);
         }
@@ -115,16 +148,20 @@ const Phone = ({ navigation }: NavigationProps) => {
                 return;
             } else {
                 // Send OTP
-                await sendOtp(contactNumber);
+                const res = await sendOtp(contactNumber);
+                setOtpValidationId(res?.data?.verificationId || "");
+                console.log("res in handle next: ", res);
+                console.log("OTP Validation ID: ", otpValidationId, res?.data);
             }
         }
         else if (currentScreen === 2) {
             // Verify OTP
-            if (otp.some(digit => digit === '')) {
+            console.log("OTP Entered: ", otp, otpValidationId);
+            if (otp.some(digit => digit === '') || !otpValidationId) {
                 showSnackbar("Please enter a valid OTP.", 'error');
                 return;
             }
-            verifyOtp();
+            verifyOtp(otpValidationId, contactNumber);
         }
     };
 

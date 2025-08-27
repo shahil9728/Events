@@ -4,7 +4,6 @@ import IconwithContainer from '@/components/IconwithContainer';
 import useExitAppOnBackPress from '@/hooks/useExitAppOnBackPress';
 import React from 'react'
 import { View, Text, Image, StyleSheet } from 'react-native';
-import FastImage from 'react-native-fast-image';
 import { AnimatedImage } from 'react-native-animated-image';
 import SuccessCheckmark from '@/components/SuccessCheckMark';
 
