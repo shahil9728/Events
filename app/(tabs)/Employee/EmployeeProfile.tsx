@@ -223,6 +223,7 @@ const createStyles = (theme: any) => StyleSheet.create({
         flex: 1,
         backgroundColor: '#060605',
         padding: 20,
+        paddingBottom:50,
     },
     imageContainer: {
         alignItems: 'center',

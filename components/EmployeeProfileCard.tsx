@@ -44,7 +44,7 @@ const EmployeeProfileCard: React.FC<EmployeeProfileCardProps> = ({ item, alterna
                     <ChipsWithText
                         key={index}
                         icon={icon}
-                        type={type}
+                        type={type as "feather" | "ionicon" | "font-awesome" | "material" | "antdesign" | "entypo" | undefined}
                         text={text}
                         alternate={alternate}
                     />
@@ -57,7 +57,7 @@ const EmployeeProfileCard: React.FC<EmployeeProfileCardProps> = ({ item, alterna
                         {formatRoles(item.role)}
                     </Text>
                     <Text style={[styles.salary, alternate && { color: "#F1F0E6" }]}>
-                        {item.salary} ₹
+                        ₹{item.salary}
                         <Text style={[styles.perMonth, alternate && { color: "#F1F0E6" }]}>/ shift</Text>
                     </Text>
                 </View>

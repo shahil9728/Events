@@ -1,12 +1,55 @@
-import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, TouchableOpacity, Text, StyleSheet, Dimensions, Animated, LayoutChangeEvent } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import Icon from '@/helpers/Icon';
 
 const BottomNavigation = ({ state, descriptors, navigation, activeTab }: BottomTabBarProps & { activeTab?: string }) => {
+    const translateX = useRef(new Animated.Value(0)).current;
+    const animatedWidth = useRef(new Animated.Value(0)).current;
+    const [tabLayouts, setTabLayouts] = useState<{ x: number; width: number }[]>(
+        []
+    );
+
+    useEffect(() => {
+        if (tabLayouts[state.index]) {
+            const { x, width } = tabLayouts[state.index];
+
+            Animated.parallel([
+                Animated.spring(translateX, {
+                    toValue: x,
+                    useNativeDriver: false,
+                }),
+                Animated.spring(animatedWidth, {
+                    toValue: width,
+                    useNativeDriver: false,
+                }),
+            ]).start();
+        }
+    }, [state.index, tabLayouts]);
+
+    const handleTabLayout = (event: LayoutChangeEvent, index: number) => {
+        const { x, width } = event.nativeEvent.layout;
+        setTabLayouts((prev) => {
+            const copy = [...prev];
+            copy[index] = { x, width };
+            return copy;
+        });
+    };
+
     return (
         <View style={styles.tabBarOuterContainer}>
             <View style={styles.tabBarContainer}>
+                {tabLayouts[state.index] && (
+                    <Animated.View
+                        style={[
+                            styles.animatedBackground,
+                            {
+                                transform: [{ translateX }],
+                                width: animatedWidth,
+                            },
+                        ]}
+                    />
+                )}
                 {state.routes.map((route, index) => {
                     const { options } = descriptors[route.key];
                     const label =
@@ -62,6 +105,7 @@ const BottomNavigation = ({ state, descriptors, navigation, activeTab }: BottomT
                             onPress={onPress}
                             onLongPress={onLongPress}
                             style={[styles.tabItem, isFocused && { flex: 2 }]}
+                            onLayout={(e) => handleTabLayout(e, index)}
                         >
                             <View
                                 style={[
@@ -108,6 +152,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderRadius: 50,
         paddingVertical: 10,
+        paddingHorizontal: 5,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
@@ -128,7 +173,6 @@ const styles = StyleSheet.create({
         borderRadius: 50,
     },
     focusedIconContainer: {
-        backgroundColor: 'white',
         borderRadius: 50,
     },
     focusedTab: {
@@ -142,12 +186,19 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 12,
         color: 'black',
-        marginTop: 5,
     },
     focusedLabel: {
         color: 'black',
         fontWeight: 'bold',
     },
+    animatedBackground: {
+        position: 'absolute',
+        top: 5,
+        bottom: 5,
+        backgroundColor: 'white',
+        borderRadius: 50,
+    },
+
 });
 
 export default BottomNavigation;

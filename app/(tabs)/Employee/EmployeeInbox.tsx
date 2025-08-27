@@ -36,8 +36,11 @@ const EmployeeInbox: React.FC<NavigationProps> = ({ navigation }) => {
         try {
             const { data, error } = await supabase.from("employee_to_manager").select("*").eq("employee_id", accountInfo.employee_id);
             if (data) {
-                setRequests(data);
-                setFilteredRequests(data);
+                const sortedData = [...data].sort((a, b) =>
+                    a.event_title.localeCompare(b.event_title)
+                );
+                setRequests(sortedData);
+                setFilteredRequests(sortedData);
             } else {
                 Sentry.captureException("Error fetching requests: " + error.message);
             }

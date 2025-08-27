@@ -202,7 +202,6 @@ export default function Employee({ navigation }: NavigationProps) {
                                 data={filteredEvents}
                                 renderItem={({ item, index }) => (
                                     <FreelancerCard
-
                                         item={item}
                                         cardType="event"
                                         alternate={index % 2 === 0 ? false : true}
@@ -283,6 +282,7 @@ const createStyles = (theme: any) => StyleSheet.create({
         color: '#fff',
         height: 60,
         fontSize: 16,
+        width: "80%"
     },
     sectionTitle: {
         color: theme.primaryColor,

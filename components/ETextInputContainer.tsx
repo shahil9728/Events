@@ -42,7 +42,7 @@ const ETextInputContainer = forwardRef<TextInput, ETextInputContainerProps>(
 
 const useStyles = (theme: any) => StyleSheet.create({
     container: {
-        paddingVertical: 15,
+        paddingVertical: 10,
         paddingHorizontal: 15,
         borderRadius: 50,
         backgroundColor: theme.lightGray1,
