@@ -5,7 +5,6 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 import Auth from './(tabs)/Onboarding/Auth';
-import { useColorScheme } from '@/hooks/useColorScheme';
 import ManagerDashboard from './(tabs)/Manager/Manager';
 import ManagerSignUp from './(tabs)/Manager/ManagerSignUp';
 import React from 'react';
@@ -37,12 +36,13 @@ import ProfileUpdateScreen from './(tabs)/Onboarding/Profile/ProfileUpdateScreen
 import Questions from './(tabs)/Onboarding/Questions/Question';
 import QuestionFinal from './(tabs)/Onboarding/Questions/QuestionFinal';
 import { Image, TouchableOpacity, View } from 'react-native';
-import { Icon } from '@rneui/themed';
+import Icon from '@/helpers/Icon';
 import { ICONTYPE, OperationType } from './globalConstants';
 import * as Sentry from "@sentry/react-native";
+import { useTheme } from './ThemeContext';
 
 Sentry.init({
-  dsn: "https://d3559d0823994858922f2c4ed755c639@app.glitchtip.com/12468",
+    dsn: "https://d3559d0823994858922f2c4ed755c639@app.glitchtip.com/12468",
 });
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -51,7 +51,7 @@ const Tab1 = createBottomTabNavigator<EmployeeListBase>();
 
 export default function App() {
     const [appReady, setAppReady] = useState(false);
-    const colorScheme = useColorScheme();
+    const { theme } = useTheme();
 
     const [fontsLoaded] = useFonts({
         SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -85,7 +85,9 @@ export default function App() {
 
     if (!appReady || !fontsLoaded) {
         return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
+            <View style={{
+                flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.backgroundColor,
+            }}>
                 <Image
                     source={require('../assets/images/logo1.png')}
                     style={{ width: 250, height: 250, resizeMode: 'contain' }}
@@ -154,6 +156,9 @@ export default function App() {
                 style={{ width: 100, height: 30, resizeMode: 'contain' }}
             />
         ),
+        headerStyle: {
+            backgroundColor: theme.backgroundColor,
+        },
     };
 
 
@@ -170,7 +175,7 @@ export default function App() {
 
     return (
         <SnackbarProvider>
-            <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <ThemeProvider value={DarkTheme}>
                 <Stack.Navigator initialRouteName="Auth">
                     <Stack.Screen name="Auth" component={Auth} options={{ headerShown: false }} />
                     <Stack.Screen name="SignUp" component={SignUp} options={{ headerShown: false }} />

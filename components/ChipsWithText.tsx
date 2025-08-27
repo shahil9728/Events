@@ -1,11 +1,12 @@
 import { useTheme } from '@/app/ThemeContext';
-import { Icon } from '@rneui/themed';
+import Icon from '@/helpers/Icon';
 import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import type { IconProps } from '@/helpers/Icon';
 
 interface ChipsWithTextProps {
     icon: string;
-    type?: string;
+    type?: IconProps['type'];
     text: string;
     alternate?: boolean;
     onPress?: () => void;

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import { Keyboard, StyleSheet, View, Text, TextInput, TouchableWithoutFeedback, TouchableOpacity, Image } from 'react-native'
+import { Keyboard, StyleSheet, View, Text, TextInput, TouchableWithoutFeedback, TouchableOpacity, Image, useColorScheme } from 'react-native'
 import { supabase } from '../../../lib/supabase'
-import { Button, Icon } from '@rneui/themed'
+import Icon from '@/helpers/Icon';
 import Loader from '../../../components/Loader'
 import { NavigationProps } from '@/app/RootLayoutHelpers';
 import { useTheme } from '../../ThemeContext';
@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons'
 import EDialog from '@/components/EDialog'
 import ETextInputContainer from '@/components/ETextInputContainer'
 import * as Sentry from "@sentry/react-native";
+import AppButton from '@/components/AppButton';
 
 export default function SignUp({ navigation }: NavigationProps) {
     const [name, setName] = useState('')
@@ -25,6 +26,7 @@ export default function SignUp({ navigation }: NavigationProps) {
     const dispatch = useDispatch();
     const styles = createStyles(theme);
     const { showSnackbar } = useSnackbar();
+    const colorScheme = useColorScheme();
 
     const joinNow = async () => {
         setLoading(true)
@@ -76,7 +78,7 @@ export default function SignUp({ navigation }: NavigationProps) {
                 <>
                     <Image source={require('../../../assets/images/logo1.png')} style={{ width: 250, height: 100, marginBottom: 5 }} />
                     <View style={styles.verticallySpaced}>
-                        <Button
+                        <AppButton
                             title="Sign Up with Google"
                             disabled={loading}
                             onPress={() => handleDialog('Google Sign-Up is not available yet')}
@@ -85,7 +87,7 @@ export default function SignUp({ navigation }: NavigationProps) {
                             containerStyle={styles.socialButtonContainer}
                             titleStyle={styles.socialButtonTitle}
                         />
-                        <Button
+                        <AppButton
                             title="Sign Up with Facebook"
                             disabled={loading}
                             onPress={() => handleDialog('Facebook Sign-Up is not available yet')}
@@ -131,7 +133,7 @@ export default function SignUp({ navigation }: NavigationProps) {
                                 />
                             </TouchableOpacity>
                         </ETextInputContainer>
-                        <Button
+                        <AppButton
                             title="Join Now"
                             disabled={loading}
                             onPress={joinNow}
@@ -156,7 +158,7 @@ export default function SignUp({ navigation }: NavigationProps) {
                         <Text style={{ color: theme.lightGray2 }}>
                             Already have an account?
                         </Text>
-                        <Button title="Log In" disabled={loading}
+                        <AppButton title="Log In" disabled={loading}
                             onPress={() => navigation.reset({
                                 index: 0,
                                 routes: [{ name: 'Auth' }],
@@ -167,7 +169,11 @@ export default function SignUp({ navigation }: NavigationProps) {
                             buttonStyle={{
                                 backgroundColor: "transparent",
                             }}
-                            TouchableComponent={TouchableWithoutFeedback}
+                            containerStyle={{
+                                width: "50%",
+                                display: "flex",
+                                alignItems: 'flex-end',
+                            }}
                         />
                     </View>
                     <EDialog
@@ -191,6 +197,7 @@ const createStyles = (theme: any) => StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 20,
         height: "100%",
+        backgroundColor: theme.backgroundColor,
     },
     textInputCont: {
         padding: 10,

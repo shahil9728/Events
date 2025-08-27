@@ -1,8 +1,7 @@
 import React from 'react';
-import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { Icon } from '@rneui/themed';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { supabase } from '../../../lib/supabase';
-import { Text } from '@rneui/themed'
+import { Text } from 'react-native'
 import { ManagerHeaderScreenProps } from '@/app/RootLayoutHelpers';
 import ProfileImage from '@/components/ProfileImage';
 import { useSelector } from 'react-redux';

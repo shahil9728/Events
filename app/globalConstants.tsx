@@ -5,7 +5,7 @@ export const ICONTYPE = {
     FEATHER: 'feather',
     ANTDESIGN: 'AntDesign',
     ENTYPO: 'Entypo',
-}
+} as const;
 
 export const OperationType = {
     UPDATE: 'UPDATE',

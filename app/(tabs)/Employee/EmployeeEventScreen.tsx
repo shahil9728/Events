@@ -2,7 +2,7 @@ import { EmployeeEventScreenProps } from '@/app/RootLayoutHelpers';
 import { useTheme } from '@/app/ThemeContext';
 import { useSnackbar } from '@/components/SnackBar';
 import { supabase } from '@/lib/supabase';
-import { Icon } from '@rneui/themed';
+import Icon from '@/helpers/Icon';
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -205,7 +205,6 @@ const createStyles = (theme: any) => StyleSheet.create({
         display: 'flex',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        borderWidth: 1,
     },
     sectionTitle: {
         color: theme.primaryColor,

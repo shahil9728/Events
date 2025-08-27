@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { FlatList, ScrollView, Text, View, StyleSheet, TouchableOpacity } from "react-native";
 import { getFriendlydate, getManagerId } from "../utils";
 import { useDispatch, useSelector } from "react-redux";
-import { Icon } from "@rneui/themed";
+import Icon from '@/helpers/Icon';
 import EDialog from "@/components/EDialog";
 import { ICONTYPE, OperationType } from "@/app/globalConstants";
 import AnimatedPressable from "@/components/AnimatedPressable";

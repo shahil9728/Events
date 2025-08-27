@@ -1,6 +1,6 @@
 import { ICONTYPE } from '@/app/globalConstants';
 import { useTheme } from '@/app/ThemeContext';
-import { Icon } from '@rneui/themed'
+import Icon from '@/helpers/Icon';
 import React from 'react'
 import { StyleSheet, TouchableOpacity } from 'react-native'
 

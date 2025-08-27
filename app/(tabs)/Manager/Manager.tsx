@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { View, StyleSheet, FlatList, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native'
+import { View, StyleSheet, FlatList, TouchableOpacity, ScrollView, ActivityIndicator, Text } from 'react-native'
 import { supabase } from '../../../lib/supabase'
-import { Text, Icon } from '@rneui/themed'
+import Icon from '@/helpers/Icon'
 import Loader from '@/components/Loader'
 import FreelancerCard from '@/components/FreelancerCard'
 import { LogBox } from 'react-native';

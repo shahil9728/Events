@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { Icon } from '@rneui/themed';
+import Icon from '@/helpers/Icon';
 
 const BottomNavigation = ({ state, descriptors, navigation, activeTab }: BottomTabBarProps & { activeTab?: string }) => {
     return (
@@ -129,6 +129,7 @@ const styles = StyleSheet.create({
     },
     focusedIconContainer: {
         backgroundColor: 'white',
+        borderRadius: 50,
     },
     focusedTab: {
         padding: 10,

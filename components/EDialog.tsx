@@ -1,6 +1,6 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
-import { Icon } from '@rneui/themed';
+import Icon from '@/helpers/Icon';
 import { useTheme } from '@/app/ThemeContext';
 
 interface EDialogProps {

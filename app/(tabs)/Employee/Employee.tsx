@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Alert, StyleSheet, BackHandler, FlatList, TextInput } from 'react-native';
+import { View, StyleSheet, FlatList, TextInput, RefreshControl } from 'react-native';
 import { supabase } from '../../../lib/supabase';
-import { Text } from '@rneui/themed'
+import { Text } from "react-native";
 import { useTheme } from '@/app/ThemeContext';
 import { NavigationProps } from '@/app/RootLayoutHelpers';
 import IconwithContainer from '@/components/IconwithContainer';
@@ -32,9 +32,10 @@ export default function Employee({ navigation }: NavigationProps) {
     const [requestid, setRequestId] = React.useState('');
     const [page, setPage] = useState(1);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
 
-    const fetchEvents = async (page = 1) => {
+    const fetchEvents = async (page = 1, refresh = false) => {
         const from = (page - 1) * pageSize;
         const to = from + pageSize - 1;
 
@@ -70,7 +71,9 @@ export default function Employee({ navigation }: NavigationProps) {
         }
         const pendingEventIds = data1?.map(d => d.event_id) || [];
         const finalFiltered = filteredEvents.filter(event => !pendingEventIds.includes(event.id));
-        setEvents(prev => page === 1 ? finalFiltered : [...prev, ...finalFiltered]);
+        setEvents(prev =>
+            refresh || page === 1 ? finalFiltered : [...prev, ...finalFiltered]
+        );
         return true;
     };
 
@@ -194,12 +197,12 @@ export default function Employee({ navigation }: NavigationProps) {
                                 <Text style={styles.emptyRow}>No events match your current skills</Text>
                                 <Text style={[styles.emptyRow, { fontSize: 12, marginTop: 2 }]}>Try enhancing your profile with more skills to unlock additional opportunities</Text>
                             </View>) :
-                            
+
                             <FlatList
                                 data={filteredEvents}
                                 renderItem={({ item, index }) => (
                                     <FreelancerCard
-                                    
+
                                         item={item}
                                         cardType="event"
                                         alternate={index % 2 === 0 ? false : true}
@@ -236,6 +239,18 @@ export default function Employee({ navigation }: NavigationProps) {
                                     }
                                 }}
                                 ListFooterComponent={isFetchingMore ? <ActivityIndicator color="#ffffff" /> : null}
+                                refreshControl={
+                                    <RefreshControl
+                                        refreshing={isRefreshing}
+                                        onRefresh={async () => {
+                                            setIsRefreshing(true);
+                                            setPage(1);
+                                            await fetchEvents(1, true); // 👈 pass reset flag
+                                            setIsRefreshing(false);
+                                        }}
+                                        tintColor="#ffffff"
+                                    />
+                                }
                             />
                         }
                     </>)}
@@ -248,6 +263,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     container: {
         flex: 1,
         padding: 10,
+        backgroundColor: theme.backgroundColor,
     },
     searchBar: {
         height: 60,

@@ -1,5 +1,5 @@
 import { ICONTYPE } from '@/app/globalConstants';
-import { Icon } from '@rneui/themed';
+import Icon from '@/helpers/Icon';
 import React, { useRef, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
 import ETextInputContainer2 from './ETextInputContainer2';

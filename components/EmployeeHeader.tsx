@@ -1,17 +1,11 @@
 import { EmployeeHeaderScreenProps } from '@/app/RootLayoutHelpers'
-import { supabase } from '@/lib/supabase'
-import { Icon } from '@rneui/themed'
+import Icon from '@/helpers/Icon';
 import React, { useEffect, useState } from 'react'
 import { StyleSheet, TouchableOpacity, View } from 'react-native'
 import Modal from './Modal'
-import { ThemeProvider, useTheme } from '@/app/ThemeContext'
-import { Image } from 'react-native'
 
 const EmployeeHeader = ({ navigation }: EmployeeHeaderScreenProps) => {
-    const [user, setUser] = useState<string | null>(null);
-    const [error, setError] = useState(null);
     const [visible, setvisible] = useState(false);
-    const { theme } = useTheme();
 
     useEffect(() => {
         const fetchUser = async () => {

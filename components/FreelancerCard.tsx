@@ -1,4 +1,4 @@
-import { Icon } from '@rneui/themed';
+import Icon from '@/helpers/Icon';
 import React, { useRef, useState, useMemo } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Pressable } from 'react-native';
 import { useSnackbar } from './SnackBar';

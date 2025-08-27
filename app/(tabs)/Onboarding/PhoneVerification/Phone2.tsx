@@ -1,6 +1,6 @@
 import { ICONTYPE } from '@/app/globalConstants';
 import { useTheme } from '@/app/ThemeContext'
-import { Icon } from '@rneui/themed';
+import Icon from '@/helpers/Icon';
 import React, { useRef } from 'react'
 import { StyleSheet, Text, TextInput, View } from 'react-native'
 
@@ -26,7 +26,7 @@ const Phone2 = ({ otp, setOtp, contactNumber, setCurrentScreen }: Phone2Props) =
         newOtp[index] = text;
         setOtp(newOtp);
 
-        if (text && index < 5) {
+        if (text && index < 3) {
             inputRefs.current[index + 1]?.focus();
         }
     };
@@ -59,7 +59,7 @@ const Phone2 = ({ otp, setOtp, contactNumber, setCurrentScreen }: Phone2Props) =
                 {otp.map((digit: string, index: number) => (
                     <TextInput
                         key={index}
-                        ref={(ref: TextInput | null) => (inputRefs.current[index] = ref)}
+                        ref={(ref: TextInput | null) => { inputRefs.current[index] = ref; }}
                         value={digit}
                         onChangeText={(text: string) => handleInputChange(text, index)}
                         onKeyPress={({ nativeEvent }: { nativeEvent: { key: string } }) => {

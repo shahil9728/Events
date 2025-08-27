@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Image, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Icon } from '@rneui/themed';
+import Icon from '@/helpers/Icon';
 
 interface ProfileImageProps {
     profileUrl: string;

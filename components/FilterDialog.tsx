@@ -1,6 +1,6 @@
 import { FILTER_CATEGORIES } from '@/app/(tabs)/managerConstants';
 import { useTheme } from '@/app/ThemeContext';
-import { Icon } from '@rneui/themed';
+import Icon from '@/helpers/Icon';
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Modal } from 'react-native';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';

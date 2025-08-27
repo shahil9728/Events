@@ -1,7 +1,7 @@
 import { useTheme } from '@/app/ThemeContext'
 import React, { useState } from 'react'
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, FlatList } from 'react-native'
-import { Icon } from '@rneui/themed'
+import Icon from '@/helpers/Icon';
 import { languagesList } from '../onboardingConstants'
 
 const Question2 = ({ answer: selectedLanguages, setAnswer }: { answer: string[], setAnswer: (value: string[]) => void }) => {

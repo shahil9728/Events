@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 import PdfModalView from './PdfModalView'; // adjust path as needed
-import { Icon } from '@rneui/themed';
+import Icon from '@/helpers/Icon';
 import { useTheme } from '@/app/ThemeContext';
 import { ActivityIndicator } from 'react-native';
 
