@@ -64,9 +64,9 @@ const FreelancerCard = ({
     }
 
     const eventDetails = (location: string, date: string) => [
-        { icon: "calendar", type: "font-awesome", text: getFriendlydate(date) },
-        { icon: "tag", type: "feather", text: getLabelFromList(item.metadata?.eventCategory, EVENT_CATEGORIES) || "Wedding" },
-        { icon: "map-pin", type: "feather", text: location },
+        { icon: "calendar", type: "font-awesome" as const, text: getFriendlydate(date) },
+        { icon: "tag", type: "feather" as const, text: getLabelFromList(item.metadata?.eventCategory, EVENT_CATEGORIES) || "Wedding" },
+        { icon: "map-pin", type: "feather" as const, text: location },
     ];
 
     const [isModalVisible, setModalVisible] = useState(false);

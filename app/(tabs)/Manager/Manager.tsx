@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { View, StyleSheet, FlatList, TouchableOpacity, ScrollView, ActivityIndicator, Text } from 'react-native'
+import { View, StyleSheet, FlatList, TouchableOpacity, ScrollView, ActivityIndicator, Text, RefreshControl } from 'react-native'
 import { supabase } from '../../../lib/supabase'
 import Icon from '@/helpers/Icon'
 import Loader from '@/components/Loader'
@@ -16,6 +16,7 @@ import { HospitalityRoles, UserRole } from '../employeeConstants'
 import { FILTER_CATEGORIES } from '../managerConstants'
 import useExitAppOnBackPress from '@/hooks/useExitAppOnBackPress'
 import * as Sentry from "@sentry/react-native";
+import { ICONTYPE } from '@/app/globalConstants'
 
 LogBox.ignoreLogs([
     'VirtualizedLists should never be nested',
@@ -38,6 +39,7 @@ export default function ManagerDashboard({ navigation }: ManagerHeaderScreenProp
     const [selectedEmployee, setSelectedEmployee] = useState<any | null>(null);
     const [isFilterVisible, setFilterVisible] = useState(false);
     const [appliedFilters, setAppliedFilters] = useState<Record<string, any>>({});
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const styles = createStyles(theme);
     const openDialog = () => setVisible(true);
     const closeDialog = () => setVisible(false);
@@ -54,7 +56,7 @@ export default function ManagerDashboard({ navigation }: ManagerHeaderScreenProp
         load();
     }, [])
 
-    const fetchEmployees = async (page = 1) => {
+    const fetchEmployees = async (page = 1, refresh = false) => {
         const from = (page - 1) * pageSize;
         const to = from + pageSize - 1;
 
@@ -81,7 +83,11 @@ export default function ManagerDashboard({ navigation }: ManagerHeaderScreenProp
                 return
             }
 
-            if (employees) setEmployees(prev => page === 1 ? employees : [...prev, ...employees])
+            if (employees) {
+                setEmployees(prev =>
+                    refresh || page === 1 ? employees : [...prev, ...employees]
+                );
+            }
             return true;
         } catch (error) {
             if (error instanceof Error) {
@@ -240,7 +246,7 @@ export default function ManagerDashboard({ navigation }: ManagerHeaderScreenProp
                 <View style={{ gap: 5 }}>
                     <TouchableOpacity style={styles.filterButton} onPress={() => setFilterVisible(true)}
                     >
-                        <Icon name="tune" size={24} color="#060605" />
+                        <Icon name="tune" size={24} color="#060605" type={ICONTYPE.MATERIAL} />
                         <Text style={styles.filterText}>Filters</Text>
                         {Object.keys(appliedFilters).length > 0 &&
                             !Object.values(appliedFilters).every(arr => arr.length === 0) && (
@@ -288,6 +294,18 @@ export default function ManagerDashboard({ navigation }: ManagerHeaderScreenProp
                                 }
                             }}
                             ListFooterComponent={isFetchingMore ? <ActivityIndicator color="#ffffff" /> : null}
+                            refreshControl={
+                                <RefreshControl
+                                    refreshing={isRefreshing}
+                                    onRefresh={async () => {
+                                        setIsRefreshing(true);
+                                        setPage(1);
+                                        await fetchEmployees(1, true); // 👈 pass reset flag
+                                        setIsRefreshing(false);
+                                    }}
+                                    tintColor="#ffffff"
+                                />
+                            }
                         />
                     </>
                 )}
