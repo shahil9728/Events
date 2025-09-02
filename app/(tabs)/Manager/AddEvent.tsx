@@ -13,6 +13,7 @@ import { OperationType } from '@/app/globalConstants';
 import { Freelancer } from '@/app/BaseClasses';
 import { getRandomImageKey } from '../utils';
 import Icon from '@/helpers/Icon';
+import * as Sentry from "@sentry/react-native";
 
 interface DayProps {
     dateString: string;
@@ -97,6 +98,7 @@ const AddEvent = ({ navigation, route }: AddEventProps) => {
             }
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Failed to fetch event details';
+            Sentry.captureException("Error fetching event details: " + errorMessage);   
             showSnackbar(errorMessage, 'error');
         } finally {
             setIsLoading(false);
@@ -238,6 +240,7 @@ const AddEvent = ({ navigation, route }: AddEventProps) => {
             navigation.navigate('RenderManagerTabs', { activeTab: 'ManagerMyEvents' });
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Something went wrong!';
+            Sentry.captureException("Error creating/updating event: " + errorMessage);
             showSnackbar(errorMessage, 'error');
         } finally {
             setIsLoading(false);

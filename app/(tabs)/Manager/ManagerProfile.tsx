@@ -55,6 +55,7 @@ const ManagerProfile = () => {
             showSnackbar('Profile updated successfully!', 'success');
         } catch (error) {
             if (error instanceof Error) {
+                Sentry.captureException("Error updating Manager profile: " + error.message);
                 showSnackbar(error.message, 'error');
             }
         } finally {
