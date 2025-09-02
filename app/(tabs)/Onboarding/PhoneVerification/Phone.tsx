@@ -22,7 +22,6 @@ const Phone = ({ navigation }: NavigationProps) => {
     const { showSnackbar } = useSnackbar();
     const dispatch = useDispatch();
     const onboardingUser = useSelector((state: any) => state.onboardingReducer);
-    console.log("user", onboardingUser);
 
     const sendOtp = async (contactNumber: string): Promise<{ data?: any }> => {
         try {
@@ -115,7 +114,9 @@ const Phone = ({ navigation }: NavigationProps) => {
                 navigation.navigate('PhoneFinal');
 
             } else {
+                console.log("Error validating OTP: ", data);
                 showSnackbar("Error validating OTP. Please try again.", 'error');
+                Sentry.captureException("Error validating OTP: " + data?.message);
             }
         } catch (error) {
             console.log("Error verifying OTP: ", error);
