@@ -12,25 +12,6 @@
       "supportsTablet": true
     },
     "plugins": [
-      "@react-native-firebase/app",
-      "@react-native-firebase/auth"
-    ],
-    "android": {
-      "googleServicesFile": "./google-services.json",
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/icon.png",
-        "backgroundColor": "#000000"
-      },
-      "package": "com.shahil9728.Events",
-      "compileSdkVersion": 35,
-      "targetSdkVersion": 35
-    },
-    "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/icon.png"
-    },
-    "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
@@ -47,8 +28,25 @@
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to let you ...",
           "photosPermission": "The app accesses your photos to let you share them with your friends."
         }
-      ]
+      ],
+      "expo-font",
+      "expo-web-browser"
     ],
+    "android": {
+      "googleServicesFile": "./google-services.json",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#000000"
+      },
+      "package": "com.shahil9728.Events",
+      "compileSdkVersion": 35,
+      "targetSdkVersion": 35
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/icon.png"
+    },
     "experiments": {
       "typedRoutes": true
     },
