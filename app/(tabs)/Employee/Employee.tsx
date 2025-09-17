@@ -129,10 +129,11 @@ export default function Employee({ navigation }: NavigationProps) {
         setRequestId(item.id);
         const { data: data1, error: error1 } = await supabase
             .from('employee_to_manager')
-            .select('manager_id, req_status, manager_id, event_id,request_initiator')
+            .select('employee_id, manager_id, req_status, manager_id, event_id,request_initiator')
             .eq('manager_id', item?.manager_id)
+            .eq('employee_id', accountInfo.employee_id)
             .eq('event_id', item.id)
-            .eq('request_initiator', UserRole.EMPLOYEE)
+            .eq('request_initiator', UserRole.EMPLOYEE);
 
         if (data1) {
             const pendingEventIds = data1?.map(d => d.event_id) || [];

@@ -16,6 +16,7 @@ import ETextInputContainer from '@/components/ETextInputContainer';
 import * as Sentry from "@sentry/react-native";
 import AppButton from '@/components/AppButton';
 import { useColorScheme } from 'react-native';
+import GoogleSignInButton from '@/components/GoogleSignInButton';
 
 export default function Auth({ navigation }: NavigationProps) {
     const [email, setEmail] = useState('')
@@ -183,6 +184,12 @@ export default function Auth({ navigation }: NavigationProps) {
                 <>
                     <Image source={require('../../../assets/images/logo1.png')} style={{ width: 250, height: 100, marginBottom: 24 }} />
                     <View style={styles.verticallySpaced}>
+                        {/* <GoogleSignInButton onSuccess={(user) => {
+                            handleDialog("Google Sign-In is not fully integrated yet. Please use email and password to sign in.");
+                        }} onError={(error) => {
+                            Sentry.captureException("Google Sign-In error: " + (error as Error).message);
+                            handleDialog("Google Sign-In failed. Please try again.");
+                        }} /> */}
                         <AppButton
                             title="Continue with Google"
                             disabled={loading}

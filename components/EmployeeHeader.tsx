@@ -1,8 +1,7 @@
 import { EmployeeHeaderScreenProps } from '@/app/RootLayoutHelpers'
 import Icon from '@/helpers/Icon';
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, TouchableOpacity, View } from 'react-native'
-import Modal from './Modal'
+import { Modal, StyleSheet, TouchableOpacity, View } from 'react-native'
 
 const EmployeeHeader = ({ navigation }: EmployeeHeaderScreenProps) => {
     const [visible, setvisible] = useState(false);

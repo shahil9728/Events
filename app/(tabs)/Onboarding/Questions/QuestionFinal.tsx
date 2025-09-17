@@ -36,6 +36,7 @@ const createStyles = (theme: any) => StyleSheet.create({
         fontSize: 36,
         fontWeight: 'bold',
         marginVertical: 20,
+        marginBottom: 10,
         textAlign: 'center',
     },
     subheading: {
