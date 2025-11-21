@@ -1,50 +1,39 @@
-# Welcome to your Expo app 👋
+# **EventCrew – Find the best Crew for your next Event**
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+EventCrew is a smart, user-friendly platform designed to streamline event planning and team coordination. Whether you're organizing a small gathering or a large-scale event, EventCrew helps you manage tasks, assign responsibilities, track progress, and stay in sync with your entire crew — all in one place.
 
-## Get started
+---
 
-1. Install dependencies
+## **✨ Key Features**
 
-   ```bash
-   npm install
-   ```
+* **Create & Manage Events**
+  Quickly set up events with essential details like date, venue, and description — everything stays organized in one place.
 
-2. Start the app
+* **Hire Experts for Your Event**
+  Easily connect with skilled professionals such as decorators, DJs, photographers, hosts, and more to make your event truly special.
 
-   ```bash
-    npx expo start
-   ```
+* **Explore Events Around You**
+  Discover nearby events happening in your area and find exciting part-time opportunities to participate as a crew member.
 
-In the output, you'll find options to open the app in a
+* **Organise Everything in One App**
+  From planning to crew management to vendor hiring, EventCrew brings all your event needs into a single, easy-to-use platform.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## **📸 Screenshots**
 
-## Get a fresh project
+```
+![Image 1](https://github.com/user-attachments/assets/32bd84cf-a76d-44ea-aa47-f4fa5a4d62ec)
+![Image 2](https://github.com/user-attachments/assets/14a3dc37-13aa-4efe-9f4e-cb2bef110586)
+![Image 3](https://github.com/user-attachments/assets/e895afe5-9f30-4881-a3b0-220dc61f8a30)
+![Image 4](https://github.com/user-attachments/assets/6c23424a-21cc-4ec8-9fc9-9058410849b7)
+![Image 5](https://github.com/user-attachments/assets/32098a3b-151e-4e06-bb7d-e91c3c4f38d7)
 
-When you're ready, run:
-
-```bash
-npm run reset-project
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+## **📱 Download on Play Store**
+`<[Play Store Link](https://play.google.com/store/apps/details?id=com.shahil9728.Events)>`
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+---
